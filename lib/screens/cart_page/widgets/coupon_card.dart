@@ -30,463 +30,332 @@ class CouponCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // We use a fixed width for the left ticket stub
+    final double leftStubWidth = 90.w;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Stack(
-        children: [
-          // Main card container
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: AlignmentGeometry.topCenter,
-                  end: AlignmentGeometry.bottomCenter,
-                  colors: [Colors.white, Colors.blue.shade50]),
-              borderRadius: BorderRadius.circular(0),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: -20,
-                  child: CustomImageContainer(
-                      imagePath: 'assets/images/Group.png'),
+      margin: EdgeInsets.fromLTRB(16.w, 2.h, 16.w, 8.h),
+      child: CustomPaint(
+        painter: _TicketShadowPainter(separatorX: leftStubWidth),
+        child: ClipPath(
+          clipper: _HorizontalTicketClipper(separatorX: leftStubWidth),
+          child: Container(
+            color: Colors.white,
+            child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left Stub (Colored)
+              Container(
+                width: leftStubWidth,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.85),
+                      AppTheme.primaryColor,
+                    ],
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 25.w, vertical: 15.h),
-                      child: Row(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: CustomImageContainer(
+                          imagePath: getAppLogoUrl(context),
+                          height: 28.w,
+                          width: 28.w,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'COUPON',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.sp,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Dashed Line Separator
+              SizedBox(
+                width: 1,
+                child: CustomPaint(
+                  painter: _VerticalDashedLinePainter(),
+                ),
+              ),
+
+              // Right Content (White)
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 12.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if (title.isNotEmpty && title.toLowerCase() != 'new')
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1E293B),
+                          ),
+                        ),
+                      if (subtitle.isNotEmpty && 
+                          subtitle.toLowerCase() != 'new' && 
+                          subtitle != title) ...[
+                        if (title.isNotEmpty && title.toLowerCase() != 'new') SizedBox(height: 6.h),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: const Color(0xFF64748B),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                      SizedBox(height: 12.h),
+
+                      // Code and Apply button
+                      Row(
                         children: [
-                          CustomImageContainer(
-                            imagePath: getAppLogoUrl(context),
-                            height: 50.h,
-                            width: 80.w,
-                            fit: BoxFit.contain,
-                          ),
-
-                          SizedBox(
-                            width: 10.w,
-                          ),
-
-                          // Text content
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w, vertical: 6.h),
+                              decoration: BoxDecoration(
+                                color: AppTheme.couponCollectBgColor,
+                                borderRadius: BorderRadius.circular(6.r),
+                                border: Border.all(
+                                  color: AppTheme.primaryColor
+                                      .withValues(alpha: 0.3),
+                                  style: BorderStyle.solid,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  couponCode,
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryColor,
+                                    letterSpacing: 1.2,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  title,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF64748B),
-                                    height: 1.4,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(25, 0, 25, 25),
-                      color: AppTheme.couponCollectBgColor,
-                      child: Stack(
-                        children: [
-                          CustomPaint(
-                            painter: DashedBorderPainter(),
+                          SizedBox(width: 12.w),
+                          AnimatedButton(
+                            onTap: (!isCollected && !isLoading)
+                                ? _handleTap
+                                : null,
                             child: Container(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 20.w,
-                                vertical: 10.h,
+                                  horizontal: 12.w, vertical: 8.h),
+                              decoration: BoxDecoration(
+                                color: isCollected
+                                    ? Colors.transparent
+                                    : const Color(0xFF007933),
+                                borderRadius: BorderRadius.circular(24.r),
+                                border: isCollected
+                                    ? Border.all(
+                                        color: const Color(0xFF007933),
+                                        width: 1.5)
+                                    : null,
+                                boxShadow: isCollected || isLoading
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                          color: const Color(0xFF007933)
+                                              .withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        )
+                                      ],
                               ),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      couponCode,
+                                  if (isLoading)
+                                    SizedBox(
+                                      width: 16.w,
+                                      height: 16.w,
+                                      child: const CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  else ...[
+                                    Text(
+                                      isCollected ? 'APPLIED' : 'APPLY',
                                       style: TextStyle(
-                                        fontSize: 16.sp,
-                                        color: Color(0xFF1E293B),
-                                        letterSpacing: 1.5,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  // Collected status
-                                  AnimatedButton(
-                                    onTap:
-                                        (!isCollected && !isLoading) ? _handleTap : null,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w800,
                                         color: isCollected
-                                            ? Colors.transparent
-                                            : const Color(0xFF007933),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (isLoading) ...[
-                                            SizedBox(
-                                              width: 14,
-                                              height: 14,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                        Color>(Colors.white),
-                                              ),
-                                            ),
-                                          ] else ...[
-                                            Text(
-                                              isCollected
-                                                  ? 'Applied'
-                                                  : 'Apply',
-                                              style: TextStyle(
-                                                fontSize: isCollected
-                                                    ? 14
-                                                    : 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: isCollected
-                                                    ? const Color(0xFF007933)
-                                                    : Colors.white,
-                                              ),
-                                            ),
-                                            if (isCollected) ...[
-                                              const SizedBox(width: 4),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(2),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xFF007933),
-                                                  borderRadius:
-                                                      BorderRadius.circular(16),
-                                                ),
-                                                child: Icon(
-                                                  Icons.check,
-                                                  size: 12,
-                                                  color: isCollected
-                                                      ? Colors.white
-                                                      : Colors.grey[600],
-                                                ),
-                                              ),
-                                            ]
-                                          ]
-                                        ],
+                                            ? const Color(0xFF007933)
+                                            : Colors.white,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
-                                  ),
+                                    if (isCollected) ...[
+                                      SizedBox(width: 4.w),
+                                      Icon(
+                                        Icons.check_circle,
+                                        size: 16.w,
+                                        color: const Color(0xFF007933),
+                                      ),
+                                    ]
+                                  ]
                                 ],
                               ),
                             ),
                           ),
-                          circleCard(
-                              ctx: context,
-                              top: 0.h,
-                              left: -12,
-                              bottom: 0,
-                              isSemiCircleRight: true),
-                          circleCard(
-                              ctx: context,
-                              top: 0.h,
-                              right: -12,
-                              bottom: 0,
-                              isSemiCircleLeft: true),
                         ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 10.h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            size: 14.sp,
+                            color: const Color(0xFF94A3B8),
+                          ),
+                          SizedBox(width: 4.w),
+                          Expanded(
+                            child: Text(
+                              'Applicable on select products. T&C Apply.',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: const Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-
-          /// TOP
-          circleCard(
-              ctx: context, top: -8.h, right: 80.w, isTopOnCard: true),
-
-          /// BOTTOM
-          circleCard(
-              ctx: context, bottom: -8.h, right: 80.w, isBottomOnCard: true),
-
-          /// First
-          circleCard(
-            ctx: context,
-            top: 5.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 5.h,
-            right: -8,
-          ),
-
-          /// Second
-          circleCard(
-            ctx: context,
-            top: 25.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 25.h,
-            right: -8,
-          ),
-
-          /// Third
-          circleCard(
-            ctx: context,
-            top: 45.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 45.h,
-            right: -8,
-          ),
-
-          /// Fourth
-          circleCard(
-            ctx: context,
-            top: 65.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 65.h,
-            right: -8,
-          ),
-
-          /// Fifth
-          circleCard(
-            ctx: context,
-            top: 85.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 85.h,
-            right: -8,
-          ),
-
-          /// Sixth
-          circleCard(
-            ctx: context,
-            top: 105.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 105.h,
-            right: -8,
-          ),
-
-          /// Seventh
-          circleCard(
-            ctx: context,
-            top: 125.h,
-            left: -8,
-          ),
-          circleCard(
-            ctx: context,
-            top: 125.h,
-            right: -8,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget circleCard({
-    required BuildContext ctx,
-    double? top,
-    double? left,
-    double? bottom,
-    double? right,
-    bool isSemiCircleLeft = false,
-    bool isSemiCircleRight = false,
-    bool isTopOnCard = false,
-    bool isBottomOnCard = false,
-  }) {
-    final bool isSemiCircle = isSemiCircleLeft || isSemiCircleRight;
-
-    return Positioned(
-      left: left,
-      top: top,
-      bottom: bottom,
-      right: right,
-      child: CustomPaint(
-        painter: DashedCirclePainter(
-          isSemiCircle: isSemiCircle,
-          isLeft: isSemiCircleLeft,
-        ),
-        child: Container(
-          width: isTopOnCard || isBottomOnCard
-              ? 24
-              : isSemiCircle
-                  ? 24
-                  : 16,
-          height: isTopOnCard || isBottomOnCard
-              ? 24
-              : isSemiCircle
-                  ? 24
-                  : 16,
-          decoration: BoxDecoration(
-            gradient: isSemiCircle
-                ? LinearGradient(
-                    begin: isSemiCircleLeft
-                        ? AlignmentGeometry.centerLeft
-                        : AlignmentGeometry.centerRight,
-                    end: isSemiCircleLeft
-                        ? AlignmentGeometry.centerRight
-                        : AlignmentGeometry.centerLeft,
-                    colors: [Colors.blue.shade50, Colors.white])
-                : null,
-            color: Theme.of(ctx).colorScheme.surface,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ),
-    );
+              ),
+            ],
+          ), // closes Row
+        ), // closes IntrinsicHeight
+        ), // closes Container
+        ), // closes ClipPath
+      ), // closes CustomPaint
+    ); // closes outer Container
   }
 }
 
-class SemiCircleClipper extends CustomClipper<Path> {
-  final bool isLeft;
+class _TicketShadowPainter extends CustomPainter {
+  final double separatorX;
+  _TicketShadowPainter({required this.separatorX});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = _HorizontalTicketClipper(separatorX: separatorX).getClip(size);
+    final paint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+    
+    canvas.drawPath(path, paint);
+  }
+  
+  @override
+  bool shouldRepaint(covariant _TicketShadowPainter oldDelegate) => 
+      oldDelegate.separatorX != separatorX;
+}
 
-  SemiCircleClipper({required this.isLeft});
+class _VerticalDashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    const dashHeight = 6.0;
+    const dashSpace = 4.0;
+    double startY = 12.0; // offset for the cutout
+
+    while (startY < size.height - 12.0) {
+      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);
+      startY += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+class _HorizontalTicketClipper extends CustomClipper<Path> {
+  final double separatorX;
+  _HorizontalTicketClipper({required this.separatorX});
 
   @override
   Path getClip(Size size) {
-    Path path = Path();
+    final path = Path();
+    const double radius = 16.0;
+    const double cutoutRadius = 10.0;
 
-    if (isLeft) {
-      // LEFT vertical half
-      path.addRect(Rect.fromLTWH(0, 0, size.width / 2, size.height));
-    } else {
-      // RIGHT vertical half
-      path.addRect(
-          Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height));
-    }
+    // Top left
+    path.moveTo(radius, 0);
+    // Top separator cutout
+    path.lineTo(separatorX - cutoutRadius, 0);
+    path.arcToPoint(Offset(separatorX + cutoutRadius, 0),
+        radius: Radius.circular(cutoutRadius), clockwise: false);
+    // Top right
+    path.lineTo(size.width - radius, 0);
+    path.arcToPoint(Offset(size.width, radius),
+        radius: Radius.circular(radius));
+    // Bottom right
+    path.lineTo(size.width, size.height - radius);
+    path.arcToPoint(Offset(size.width - radius, size.height),
+        radius: Radius.circular(radius));
+    // Bottom separator cutout
+    path.lineTo(separatorX + cutoutRadius, size.height);
+    path.arcToPoint(Offset(separatorX - cutoutRadius, size.height),
+        radius: Radius.circular(cutoutRadius), clockwise: false);
+    // Bottom left
+    path.lineTo(radius, size.height);
+    path.arcToPoint(Offset(0, size.height - radius),
+        radius: Radius.circular(radius));
+    // Close
+    path.lineTo(0, radius);
+    path.arcToPoint(Offset(radius, 0), radius: Radius.circular(radius));
 
+    path.close();
     return path;
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-// Custom painter for dashed border
-class DashedBorderPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppTheme.primaryColor
-      ..strokeWidth = 1
-      ..style = PaintingStyle.stroke;
-
-    const dashWidth = 2.0;
-    const dashSpace = 2.0;
-
-    final path = Path();
-    path.addRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(2),
-      ),
-    );
-
-    // Create dashed effect
-    final pathMetrics = path.computeMetrics();
-    for (final pathMetric in pathMetrics) {
-      double distance = 0;
-      while (distance < pathMetric.length) {
-        final nextDistance = distance + dashWidth;
-        final segment = pathMetric.extractPath(
-          distance,
-          nextDistance > pathMetric.length ? pathMetric.length : nextDistance,
-        );
-        canvas.drawPath(segment, paint);
-        distance = nextDistance + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class DashedCirclePainter extends CustomPainter {
-  final bool isSemiCircle;
-  final bool isLeft;
-
-  DashedCirclePainter({required this.isSemiCircle, this.isLeft = false});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = isSemiCircle ? AppTheme.primaryColor : const Color(0xFFCBD5E1)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    if (isSemiCircle) {
-      const dashWidth = 2.0;
-      const dashSpace = 2.0;
-      final circumference = 2 * 3.1415926535 * radius;
-      final dashCount = (circumference / (dashWidth + dashSpace)).ceil();
-
-      canvas.save();
-
-      final clipRect = isLeft
-          ? Rect.fromLTWH(0, 0, size.width / 2 + 1, size.height)
-          : Rect.fromLTWH(
-              size.width / 2 - 1, 0, size.width / 2 + 1, size.height);
-      canvas.clipRect(clipRect);
-
-      for (int i = 0; i < dashCount; i++) {
-        final angle =
-            (i * (dashWidth + dashSpace)) / radius * (180 / 3.1415926535);
-        final startAngle = angle * 3.1415926535 / 180;
-        final sweepAngle = dashWidth / radius;
-
-        canvas.drawArc(
-          Rect.fromCircle(center: center, radius: radius),
-          startAngle,
-          sweepAngle,
-          false,
-          paint,
-        );
-      }
-
-      canvas.restore();
-    } else {
-      canvas.drawCircle(center, radius, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldReclip(_HorizontalTicketClipper oldClipper) =>
+      oldClipper.separatorX != separatorX;
 }
