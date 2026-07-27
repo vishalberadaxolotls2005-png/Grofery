@@ -1,0 +1,283 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:grofery_user/config/theme.dart';
+import 'package:grofery_user/utils/widgets/custom_circular_progress_indicator.dart';
+import 'package:grofery_user/utils/widgets/custom_refresh_indicator.dart';
+import 'package:grofery_user/utils/widgets/custom_shimmer.dart';
+import 'package:grofery_user/utils/widgets/empty_states_page.dart';
+import 'package:grofery_user/bloc/user_cart_bloc/user_cart_bloc.dart';
+import 'package:grofery_user/bloc/user_cart_bloc/user_cart_event.dart';
+import 'package:grofery_user/config/constant.dart';
+import 'package:grofery_user/model/user_cart_model/cart_sync_action.dart';
+import 'package:grofery_user/model/user_cart_model/user_cart.dart';
+import 'package:grofery_user/utils/widgets/custom_product_card.dart';
+import 'package:grofery_user/utils/widgets/custom_scaffold.dart';
+import 'package:grofery_user/screens/wishlist_page/bloc/wishlist_product_bloc/wishlist_product_bloc.dart';
+import 'package:grofery_user/screens/wishlist_page/model/wishlist_product_model.dart';
+
+class WishlistProductListingPage extends StatefulWidget {
+  final int wishlistId;
+  const WishlistProductListingPage({super.key, required this.wishlistId});
+
+  @override
+  State<WishlistProductListingPage> createState() =>
+      _WishlistProductListingPageState();
+}
+
+class _WishlistProductListingPageState
+    extends State<WishlistProductListingPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<WishlistProductBloc>().add(
+          FetchWishlistProductData(
+            wishlistId: widget.wishlistId,
+          ),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScaffold(
+      showViewCart: true,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        centerTitle: false,
+        title: BlocBuilder<WishlistProductBloc, WishlistProductState>(
+          builder: (BuildContext context, WishlistProductState state) {
+            if (state is WishlistProductLoaded) {
+              return Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state.wishlistName,
+                        style: TextStyle(
+                          fontSize: isTablet(context) ? 24 : 20.sp,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
+                      ),
+                      Text(
+                        '${state.totalProducts} items',
+                        style: TextStyle(
+                          fontSize: isTablet(context) ? 14 : 10.sp,
+                          color: Colors.grey,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              );
+            }
+            return SizedBox.shrink();
+          },
+        ),
+      ),
+      body: CustomRefreshIndicator(
+        onRefresh: () async {
+          context.read<WishlistProductBloc>().add(
+                FetchWishlistProductData(
+                  wishlistId: widget.wishlistId,
+                ),
+              );
+        },
+        child: BlocConsumer<WishlistProductBloc, WishlistProductState>(
+          listener: (BuildContext context, WishlistProductState state) {},
+          builder: (BuildContext context, WishlistProductState state) {
+            if (state is WishlistProductLoaded) {
+              return NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo is ScrollUpdateNotification &&
+                      !state.hasReachedMax &&
+                      scrollInfo.metrics.pixels >=
+                          scrollInfo.metrics.maxScrollExtent - 50) {}
+                  return false;
+                },
+                child: Container(
+                  color: Theme.of(context).colorScheme.primary,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 1,
+                        color: Colors.grey.shade200,
+                        width: double.infinity,
+                      ),
+                      productList(
+                        productData: state.wishlistProductItems,
+                        hasReachedMax: state.hasReachedMax,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (state is WishlistProductLoading) {
+              return CustomCircularProgressIndicator();
+            }
+            return NoProductPage(
+              onRetry: () {
+                context.read<WishlistProductBloc>().add(
+                      FetchWishlistProductData(
+                        wishlistId: widget.wishlistId,
+                      ),
+                    );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget productList({
+    required List<WishlistProductItems> productData,
+    required bool hasReachedMax,
+  }) {
+    return Expanded(
+      child: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        child: _buildContent(productData, hasReachedMax),
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    List<WishlistProductItems> productData,
+    bool hasReachedMax,
+  ) {
+    if (productData.isEmpty) {
+      return NoProductPage(
+        onRetry: () {
+          context.read<WishlistProductBloc>().add(
+                FetchWishlistProductData(
+                  wishlistId: widget.wishlistId,
+                ),
+              );
+        },
+      );
+    }
+
+    return _buildProductGrid(productData, hasReachedMax);
+  }
+
+  Widget _buildProductGrid(
+      List<WishlistProductItems> productData, bool hasReachedMax) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      child: GridView.builder(
+        physics: AlwaysScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: isTablet(context) ? 4 : 2,
+          crossAxisSpacing: 14.w,
+          mainAxisSpacing: 10.h,
+          mainAxisExtent: 290.h,
+        ),
+        itemCount: productData.length,
+        itemBuilder: (context, index) => _buildGridItem(productData, index),
+      ),
+    );
+  }
+
+  Widget _buildGridItem(List<WishlistProductItems> productData, int index) {
+    final product = productData[index];
+    final p = product.product;
+    final v = product.variant;
+    
+    if (p == null || v == null) {
+      return const SizedBox.shrink(); // Hide malformed items
+    }
+
+    return CustomProductCard(
+      productId: p.id ?? 0,
+      productImage: p.image ?? '',
+      productSlug: p.slug ?? '',
+      productName: p.title ?? '',
+      productPrice: (v.price ?? 0).toString(),
+      specialPrice: (v.specialPrice ?? 0).toString(),
+      productTags: const [],
+      estimatedDeliveryTime: (p.estimatedDeliveryTime ?? '').toString(),
+      assetImage: '',
+      ratings: (p.ratings ?? 0).toDouble(),
+      ratingCount: p.ratingCount ?? 0,
+      quickDeliveryAvailable: p.quickDeliveryAvailable ?? false,
+      onAddToCart: (quantity) {
+        final item = UserCart(
+            productId: (p.id ?? 0).toString(),
+            variantId: (v.id ?? 0).toString(),
+            variantName: v.variantTitle.isNotEmpty ? v.variantTitle : (p.title ?? ''),
+            vendorId: (v.storeId ?? product.store?.id ?? 0).toString(),
+            name: p.title ?? '',
+            image: p.image ?? '',
+            price: v.getEffectivePrice(quantity),
+            originalPrice: (v.price ?? 0).toDouble(),
+            quantity: quantity,
+            serverCartItemId: null,
+            syncAction: CartSyncAction.add,
+            updatedAt: DateTime.now(),
+            minQty: p.minimumOrderQuantity != null && p.minimumOrderQuantity! > 0 ? p.minimumOrderQuantity! : 1,
+            maxQty: p.totalAllowedQuantity != null && p.totalAllowedQuantity! > 0 ? p.totalAllowedQuantity! : 100,
+            isOutOfStock: (v.stock ?? 0) <= 0,
+            tieredPricing: v.tieredPricing,
+            isSynced: false);
+        context.read<CartBloc>().add(AddToCart(item: item, context: context));
+      },
+      isStoreOpen: p.storeStatus?.isOpen ?? true,
+      isWishListed: true, // It's in the wishlist product listing
+      productVariantId: v.id ?? 0,
+      storeId: v.storeId ?? product.store?.id ?? 0,
+      totalStocks: v.stock ?? 0,
+      showWishlist: true,
+      wishlistItemId: product.id ?? 0,
+      imageFit: p.imageFit ?? 'contain',
+      quantityStepSize: p.quantityStepSize != null && p.quantityStepSize! > 0 ? p.quantityStepSize! : 1,
+      minQty: p.minimumOrderQuantity != null && p.minimumOrderQuantity! > 0 ? p.minimumOrderQuantity! : 1,
+      totalAllowedQuantity: p.totalAllowedQuantity != null && p.totalAllowedQuantity! > 0 ? p.totalAllowedQuantity! : 100,
+      tieredPricing: v.tieredPricing,
+      mrp: v.mrp?.toString(),
+      mrpStatus: v.mrpStatus,
+      pricePerUnit: v.pricePerUnit?.toString(),
+      measurementUnit: v.measurementUnit,
+    );
+
+    /*return WishlistProductCard(
+      productImage: product.product!.image!,
+      productName: product.product!.title!,
+      productSlug: product.product!.slug!,
+      price: product.variant!.price.toString(),
+      specialPrice: product.variant!.specialPrice.toString(),
+      onMoveToAnotherWishlist: (){
+        _showMoveToWishlistSheet(
+            context,
+            product.id!,
+            product.variant!.id!,
+            product.store!.id!,
+            product.wishlistId!
+        );
+      },
+    );*/
+  }
+
+  Widget productShimmer() {
+    return Column(
+      children: [
+        ShimmerWidget.rectangular(
+          isBorder: true,
+          height: 130,
+          width: 130,
+          borderRadius: 15,
+        ),
+        const SizedBox(height: 10.0),
+        ShimmerWidget.rectangular(
+          isBorder: true,
+          height: 15,
+          width: 130,
+          borderRadius: 15,
+        ),
+      ],
+    );
+  }
+}
