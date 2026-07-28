@@ -118,7 +118,8 @@ class _CartPageState extends State<CartPage> {
   void initState() {
     super.initState();
     _userWantsWallet = false;
-    selectedAddress = HiveSelectedAddressHelper.getSelectedAddress()?.toAddressListData();
+    selectedAddress =
+        HiveSelectedAddressHelper.getSelectedAddress()?.toAddressListData();
     if (selectedAddress == null) {
       final addressBlocState = context.read<GetAddressListBloc>().state;
       if (addressBlocState is GetAddressListLoaded &&
@@ -1011,6 +1012,7 @@ class _CartPageState extends State<CartPage> {
             },
           ),
         ],
+        SizedBox(height: 5.h),
         OrderNoteWidget(
           onNoteChanged: (note) {
             setState(() {
@@ -1060,7 +1062,7 @@ class _CartPageState extends State<CartPage> {
           },
         ),
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 16.h),
+          padding: EdgeInsets.symmetric(vertical: 9.h),
           child: MinimumOrderProgressBar(
               currentTotal: itemsTotal, isBottomAttached: false),
         ),
@@ -1628,18 +1630,19 @@ class _CartPageState extends State<CartPage> {
   }
 
   void _showBillDetailsBottomSheet(BuildContext context) {
-    if (stateData.isEmpty || stateData.first.data?.paymentSummary == null) return;
-    
+    if (stateData.isEmpty || stateData.first.data?.paymentSummary == null)
+      return;
+
     final cartData = stateData;
     final billSummaryData = cartData.first.data!.paymentSummary;
-    
+
     final finalWalletAmountUsed = walletAmountUsedValue;
     final finalGrandTotal = totalAmount;
     final calculatedItemsTotalVal = calculatedItemsTotal;
     final originalItemsTotalVal = originalItemsTotal;
     final itemSavingsVal = itemSavings;
     final currentDeliveryChargeVal = currentDeliveryCharge;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1653,7 +1656,8 @@ class _CartPageState extends State<CartPage> {
               topRight: Radius.circular(20),
             ),
           ),
-          padding: const EdgeInsets.only(top: 8.0, bottom: 20, left: 16, right: 16),
+          padding:
+              const EdgeInsets.only(top: 8.0, bottom: 20, left: 16, right: 16),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1673,7 +1677,8 @@ class _CartPageState extends State<CartPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      AppLocalizations.of(context)?.billDetails ?? 'Bill details',
+                      AppLocalizations.of(context)?.billDetails ??
+                          'Bill details',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -1697,14 +1702,17 @@ class _CartPageState extends State<CartPage> {
                       itemsDiscountedPrice: calculatedItemsTotalVal,
                       itemsSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
                       deliveryChargeOriginal: currentDeliveryChargeVal,
-                      handlingCharge: billSummaryData?.handlingCharges?.toDouble() ?? 0,
+                      handlingCharge:
+                          billSummaryData?.handlingCharges?.toDouble() ?? 0,
                       grandTotal: finalGrandTotal,
                       totalSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
                       perStoreDropOffFees:
-                          billSummaryData?.perStoreDropOffFee?.toDouble() ?? 0.0,
+                          billSummaryData?.perStoreDropOffFee?.toDouble() ??
+                              0.0,
                       promoCode: billSummaryData?.promoCode,
-                      promoDiscount:
-                          double.tryParse(billSummaryData?.promoDiscount ?? '0') ?? 0,
+                      promoDiscount: double.tryParse(
+                              billSummaryData?.promoDiscount ?? '0') ??
+                          0,
                       promoError: billSummaryData?.promoError,
                       removeCoupon: () {
                         setState(() {
@@ -1714,7 +1722,8 @@ class _CartPageState extends State<CartPage> {
                         context.read<PromoCodeBloc>().add(RemovePromoCode());
                         context.read<GetUserCartBloc>().add(FetchUserCart(
                               addressId: selectedAddress?.id,
-                              rushDelivery: selectedDeliveryType == DeliveryType.rush,
+                              rushDelivery:
+                                  selectedDeliveryType == DeliveryType.rush,
                               useWallet: _userWantsWallet,
                               promoCode: promoCode ?? '',
                             ));
