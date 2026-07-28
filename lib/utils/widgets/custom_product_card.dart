@@ -165,7 +165,8 @@ class CustomProductCard extends StatelessWidget {
                               PriceUtils.calculateDiscountPercentage(
                                       (mrpStatus == 1 && _displayMrp > 0)
                                           ? _displayMrp
-                                          : (double.tryParse(productPrice) ?? 0.0),
+                                          : (double.tryParse(productPrice) ??
+                                              0.0),
                                       _displaySpecialPrice)
                                   .toString(),
                           heroTag: heroTag,
@@ -205,12 +206,24 @@ class CustomProductCard extends StatelessWidget {
                                   if (formattedPricePerUnit != null)
                                     Padding(
                                       padding: EdgeInsets.only(top: 2.h),
-                                      child: Text(
-                                        formattedPricePerUnit,
-                                        style: TextStyle(
-                                          fontSize: 9.sp,
-                                          color: Colors.grey.shade600,
-                                          fontWeight: FontWeight.w500,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            fontSize: 9.sp,
+                                            color: Colors.green,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: 'Best Price',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            TextSpan(
+                                              text: formattedPricePerUnit,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -474,7 +487,8 @@ class CustomProductCard extends StatelessWidget {
                                   onVariantSelectorRequested != null) {
                                 onVariantSelectorRequested!();
                               } else {
-                                if ((cartItem.quantity - quantityStepSize) >= (minQty > 0 ? minQty : 1)) {
+                                if ((cartItem.quantity - quantityStepSize) >=
+                                    (minQty > 0 ? minQty : 1)) {
                                   if (context.mounted) {
                                     context.read<CartBloc>().add(
                                           UpdateCartQty(
@@ -520,7 +534,10 @@ class CustomProductCard extends StatelessWidget {
                                         return;
                                       }
 
-                                      final int initialQty = (minQty > 0 && minQty > quantityStepSize) ? minQty : quantityStepSize;
+                                      final int initialQty = (minQty > 0 &&
+                                              minQty > quantityStepSize)
+                                          ? minQty
+                                          : quantityStepSize;
 
                                       final error = CartValidation
                                           .validateProductAddToCart(
@@ -730,14 +747,19 @@ class CustomProductCard extends StatelessWidget {
 
   String? get _formattedPricePerUnit {
     final String? val = pricePerUnit?.trim();
-    if (val == null || val.isEmpty || val == '0' || val == '0.0' || val == '0.00') return null;
+    if (val == null ||
+        val.isEmpty ||
+        val == '0' ||
+        val == '0.0' ||
+        val == '0.00') return null;
     final double? parsed = double.tryParse(val);
     if (parsed != null && parsed > 0) {
       return "${AppConstant.currency}${formatPrice(parsed)} per $_displayMeasurementUnit";
     }
     if (val.contains('/')) {
       final replaced = val.replaceAll('/', ' per ');
-      if (replaced.startsWith(AppConstant.currency) || replaced.startsWith('₹')) {
+      if (replaced.startsWith(AppConstant.currency) ||
+          replaced.startsWith('₹')) {
         return replaced;
       }
       return "${AppConstant.currency}$replaced";
@@ -748,7 +770,9 @@ class CustomProductCard extends StatelessWidget {
   String get _displayMeasurementUnit {
     String unit = measurementUnit?.trim() ?? '';
     if (unit.toLowerCase().contains('bast rate')) {
-      unit = unit.replaceAll(RegExp(r'\s*bast rate\s*', caseSensitive: false), '').trim();
+      unit = unit
+          .replaceAll(RegExp(r'\s*bast rate\s*', caseSensitive: false), '')
+          .trim();
     }
     return unit.isNotEmpty ? unit : 'pc';
   }
@@ -914,8 +938,10 @@ class CustomProductCard extends StatelessWidget {
                           final int displayQty = currentQty > 0
                               ? currentQty
                               : (minQty > 0 ? minQty : 1);
-                          final double totalPrice = _displaySpecialPrice * displayQty;
-                          final double totalOriginalPrice = _displayMrp * displayQty;
+                          final double totalPrice =
+                              _displaySpecialPrice * displayQty;
+                          final double totalOriginalPrice =
+                              _displayMrp * displayQty;
                           final String? formattedPricePerUnit =
                               _formattedPricePerUnit;
 
@@ -957,12 +983,24 @@ class CustomProductCard extends StatelessWidget {
                               if (formattedPricePerUnit != null)
                                 Padding(
                                   padding: EdgeInsets.only(top: 1.h),
-                                  child: Text(
-                                    formattedPricePerUnit,
-                                    style: TextStyle(
-                                      fontSize: 9.sp,
-                                      color: Colors.grey.shade600,
-                                      fontWeight: FontWeight.w500,
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: 9.sp,
+                                        color: Colors.green,
+                                      ),
+                                      children: [
+                                        const TextSpan(
+                                          text: 'Best Price ',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        TextSpan(
+                                          text: formattedPricePerUnit,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -1285,8 +1323,10 @@ class CustomProductCard extends StatelessWidget {
                         final int displayQty = currentQty > 0
                             ? currentQty
                             : (minQty > 0 ? minQty : 1);
-                        final double totalPrice = _displaySpecialPrice * displayQty;
-                        final double totalOriginalPrice = _displayMrp * displayQty;
+                        final double totalPrice =
+                            _displaySpecialPrice * displayQty;
+                        final double totalOriginalPrice =
+                            _displayMrp * displayQty;
                         final String? formattedPricePerUnit =
                             _formattedPricePerUnit;
 
@@ -1329,12 +1369,24 @@ class CustomProductCard extends StatelessWidget {
                                     ),
                                     SizedBox(height: 4.h),
                                     if (formattedPricePerUnit != null)
-                                      Text(
-                                        formattedPricePerUnit,
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: Colors.grey.shade500,
-                                          fontWeight: FontWeight.w500,
+                                      RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            color: Colors.green,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: 'Best Price ',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            TextSpan(
+                                              text: formattedPricePerUnit,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                   ],
@@ -2104,7 +2156,8 @@ class OptimisticWishlistButton extends StatefulWidget {
   });
 
   @override
-  State<OptimisticWishlistButton> createState() => _OptimisticWishlistButtonState();
+  State<OptimisticWishlistButton> createState() =>
+      _OptimisticWishlistButtonState();
 }
 
 class _OptimisticWishlistButtonState extends State<OptimisticWishlistButton> {
@@ -2127,9 +2180,9 @@ class _OptimisticWishlistButtonState extends State<OptimisticWishlistButton> {
         setState(() {
           _localOverride = !isWishlisted;
         });
-        
+
         final shouldKeep = await widget.onTap();
-        
+
         if (!shouldKeep) {
           if (mounted) {
             setState(() {
