@@ -86,78 +86,38 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final backgroundHeight = screenHeight * 0.4;
-
     return CustomScaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       showViewCart: false,
-      body: Stack(
-        children: [
-          SizedBox(
-            height: double.infinity,
-            width: double.infinity,
-          ),
-
-          Container(
-            height: 450,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              image: DecorationImage(
-                image: AssetImage('assets/images/wallet/wallet-bg-image.png'),
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-              ),
-            ),
-          ),
-
-          SafeArea(child: _buildAppBar(context)),
-
-          Positioned(
-            top: backgroundHeight,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    SizedBox(height: 16),
+                    _buildBalanceCard(),
+                    SizedBox(height: 24),
+                    _buildTransactionsRow(),
+                    Spacer(),
+                    _buildBottomButtons(context),
+                    SizedBox(height: 24),
+                  ],
                 ),
               ),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(top: 100, left: 20, right: 20),
-                    child: Column(
-                      children: [
-                        _buildTransactionsRow(),
-                        Expanded(child: Container()),
-                        _buildBottomButtons(context),
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
-
-          Positioned(
-            top: backgroundHeight - 60,
-            left: 20,
-            right: 20,
-            child: _buildBalanceCard(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildAppBar(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
           GestureDetector(
@@ -165,12 +125,15 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
             child: Container(
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
               ),
               child: Icon(
                 Icons.arrow_back,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.tertiary,
                 size: 24,
               ),
             ),
@@ -180,16 +143,9 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
               AppLocalizations.of(context)!.wallet,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white,
-                fontSize: isTablet(context) ? 24 : 16.sp,
+                color: Theme.of(context).colorScheme.tertiary,
+                fontSize: isTablet(context) ? 24 : 18.sp,
                 fontWeight: FontWeight.bold,
-                shadows: [
-                  Shadow(
-                    offset: Offset(0, 1),
-                    blurRadius: 3,
-                    color: Colors.black.withValues(alpha: 0.5),
-                  ),
-                ],
               ),
             ),
           ),
@@ -205,18 +161,24 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
       builder: (context, child) {
         return Container(
           width: double.infinity,
-          padding: EdgeInsets.all(18),
+          padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color(0xFF2196F3),
-                Color(0xFF0861B9),
+                AppTheme.primaryColor.withValues(alpha: 0.9),
+                AppTheme.primaryColor.withValues(alpha: 0.7),
               ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
-
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,39 +195,26 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    SizedBox(height: 8),
                     BlocBuilder<UserWalletBloc, UserWalletState>(
                       builder: (BuildContext context, UserWalletState state) {
                         if (state is UserWalletLoaded) {
                           return Text(
-                            state.userWallet.first.balance ?? '0.00',
+                            '${AppConstant.currency}${state.userWallet.first.balance ?? '0.00'}',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 30,
+                              fontSize: 32,
                               fontWeight: FontWeight.bold,
-                            ),
-                          );
-                        } else if (state is UserWalletLoading) {
-                          return Container(
-                            height: 30,
-                            width: 60,
-                            alignment: Alignment.centerLeft,
-                            child: SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.0,
-                              ),
                             ),
                           );
                         }
                         return Container(
-                          height: 30,
-                          width: 60,
+                          height: 38,
+                          width: 80,
                           alignment: Alignment.centerLeft,
                           child: SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
                               color: Colors.white,
                               strokeWidth: 2.0,
@@ -274,8 +223,7 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                         );
                       },
                     ),
-                    SizedBox(height: 8),
-                    // Tap to refresh hint with animated icon
+                    SizedBox(height: 12),
                     Row(
                       children: [
                         AnimatedBuilder(
@@ -288,19 +236,19 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                                 ..rotateY(_flipAnimation.value),
                               child: Icon(
                                 TablerIcons.coin,
-                                color: Colors.white.withValues(alpha: 0.8),
-                                size: 16,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                size: 18,
                               ),
                             );
                           },
                         ),
-                        SizedBox(width: 6),
+                        SizedBox(width: 8),
                         Text(
                           AppLocalizations.of(context)!.tapCoinToRefresh,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -308,7 +256,6 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                   ],
                 ),
               ),
-              // Interactive coin with flip animation
               GestureDetector(
                 onTap: _refreshBalance,
                 child: AnimatedBuilder(
@@ -323,8 +270,8 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                         ..setEntry(3, 2, 0.002)
                         ..rotateY(angle),
                       child: Container(
-                        width: 100,
-                        height: 100,
+                        width: 90,
+                        height: 90,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: _isRefreshing ? [
@@ -338,25 +285,17 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                         child: isFront
                             ? CustomImageContainer(
                           imagePath:  'assets/images/wallet/wallet-coins.png',
-                          width: 100,
-                          height: 100,
+                          width: 90,
+                          height: 90,
                         )
                             : Transform(
                           alignment: Alignment.center,
                           transform: Matrix4.identity()..rotateY(math.pi),
                           child: CustomImageContainer(
                             imagePath:  'assets/images/wallet/wallet-coins.png',
-                            width: 100,
-                            height: 100,
+                            width: 90,
+                            height: 90,
                           ),
-
-                          // child: Image.asset(
-                          //   'assets/images/wallet/wallet-coins.png',
-                          //   width: 100,
-                          //   height: 100,
-                          //   color: Colors.white.withOpacity(0.9),
-                          //   colorBlendMode: BlendMode.modulate,
-                          // ),
                         ),
                       ),
                     );
@@ -374,30 +313,36 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: () {
         GoRouter.of(context).push(AppRoutes.transactions);
-        // Navigate to transactions page
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         decoration: BoxDecoration(
-          color: isDarkMode(context) ? Theme.of(context).colorScheme.onSecondary : Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: Theme.of(context).colorScheme.outlineVariant,
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(6),
+              padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Color(0xFF2196F3).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                TablerIcons.notebook,
-                color: Color(0xFF2196F3),
-                size: 24,
+                TablerIcons.receipt,
+                color: AppTheme.primaryColor,
+                size: 26,
               ),
             ),
             SizedBox(width: 16),
@@ -406,14 +351,15 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
                 AppLocalizations.of(context)!.viewTransactions,
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.tertiary,
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey.shade600,
-              size: 16,
+              color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.5),
+              size: 18,
             ),
           ],
         ),
@@ -422,20 +368,17 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomButtons(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildActionButton(
-            AppLocalizations.of(context)!.addMoney,
-            AppTheme.primaryColor,
-            Colors.white,
-            Colors.transparent,
-                () {
-              GoRouter.of(context).push(AppRoutes.addMoney);
-            },
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: double.infinity,
+      child: _buildActionButton(
+        AppLocalizations.of(context)!.addMoney,
+        AppTheme.primaryColor,
+        Colors.white,
+        Colors.transparent,
+            () {
+          GoRouter.of(context).push(AppRoutes.addMoney);
+        },
+      ),
     );
   }
 
@@ -452,7 +395,7 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
         height: 56,
         decoration: BoxDecoration(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: borderColor != Colors.transparent
                 ? borderColor
@@ -461,9 +404,9 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.2),
-              blurRadius: 8,
-              offset: Offset(0, 2),
+              color: backgroundColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -472,8 +415,8 @@ class _WalletPageState extends State<WalletPage> with TickerProviderStateMixin {
             text,
             style: TextStyle(
               color: textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
