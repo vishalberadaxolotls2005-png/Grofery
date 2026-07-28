@@ -1065,59 +1065,8 @@ class _CartPageState extends State<CartPage> {
               currentTotal: itemsTotal, isBottomAttached: false),
         ),
         offerAndCouponButton(),
-        SizedBox(height: 12.h),
-        Stack(
-          children: [
-            BillSummaryWidget(
-              itemsOriginalPrice:
-                  originalItemsTotalVal > calculatedItemsTotalVal
-                      ? originalItemsTotalVal
-                      : -1,
-              itemsDiscountedPrice: calculatedItemsTotalVal,
-              itemsSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
-              deliveryChargeOriginal: currentDeliveryChargeVal,
-              handlingCharge: billSummaryData?.handlingCharges?.toDouble() ?? 0,
-              grandTotal: finalGrandTotal,
-              totalSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
-              perStoreDropOffFees:
-                  billSummaryData?.perStoreDropOffFee?.toDouble() ?? 0.0,
-              promoCode: billSummaryData?.promoCode,
-              promoDiscount:
-                  double.tryParse(billSummaryData?.promoDiscount ?? '0') ?? 0,
-              promoError: billSummaryData?.promoError,
-              removeCoupon: () {
-                setState(() {
-                  isCartLoading = true;
-                  promoCode = '';
-                });
-                context.read<PromoCodeBloc>().add(RemovePromoCode());
-                context.read<GetUserCartBloc>().add(FetchUserCart(
-                      addressId: selectedAddress?.id,
-                      rushDelivery: selectedDeliveryType == DeliveryType.rush,
-                      useWallet: _userWantsWallet,
-                      promoCode: promoCode ?? '',
-                    ));
-              },
-              promoMode: billSummaryData?.promoApplied?.promoMode ?? '',
-              discountAmount:
-                  billSummaryData?.promoApplied?.discountAmount ?? '',
-              isRushDelivery: billSummaryData?.isRushDelivery,
-              walletAmountUsed: finalWalletAmountUsed,
-            ),
-            if (isBillDetailsLoading)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(16.r),
-                  ),
-                  child: const Center(
-                    child: CustomCircularProgressIndicator(),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        // Bill summary moved to bottom sheet triggered by bottom bar
+        const SizedBox.shrink(),
       ],
     );
   }
@@ -1678,6 +1627,115 @@ class _CartPageState extends State<CartPage> {
         ));
   }
 
+  void _showBillDetailsBottomSheet(BuildContext context) {
+    if (stateData.isEmpty || stateData.first.data?.paymentSummary == null) return;
+    
+    final cartData = stateData;
+    final billSummaryData = cartData.first.data!.paymentSummary;
+    
+    final finalWalletAmountUsed = walletAmountUsedValue;
+    final finalGrandTotal = totalAmount;
+    final calculatedItemsTotalVal = calculatedItemsTotal;
+    final originalItemsTotalVal = originalItemsTotal;
+    final itemSavingsVal = itemSavings;
+    final currentDeliveryChargeVal = currentDeliveryCharge;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          padding: const EdgeInsets.only(top: 8.0, bottom: 20, left: 16, right: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)?.billDetails ?? 'Bill details',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Icon(Icons.close, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Stack(
+                  children: [
+                    BillSummaryWidget(
+                      itemsOriginalPrice:
+                          originalItemsTotalVal > calculatedItemsTotalVal
+                              ? originalItemsTotalVal
+                              : -1,
+                      itemsDiscountedPrice: calculatedItemsTotalVal,
+                      itemsSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
+                      deliveryChargeOriginal: currentDeliveryChargeVal,
+                      handlingCharge: billSummaryData?.handlingCharges?.toDouble() ?? 0,
+                      grandTotal: finalGrandTotal,
+                      totalSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
+                      perStoreDropOffFees:
+                          billSummaryData?.perStoreDropOffFee?.toDouble() ?? 0.0,
+                      promoCode: billSummaryData?.promoCode,
+                      promoDiscount:
+                          double.tryParse(billSummaryData?.promoDiscount ?? '0') ?? 0,
+                      promoError: billSummaryData?.promoError,
+                      removeCoupon: () {
+                        setState(() {
+                          isCartLoading = true;
+                          promoCode = '';
+                        });
+                        context.read<PromoCodeBloc>().add(RemovePromoCode());
+                        context.read<GetUserCartBloc>().add(FetchUserCart(
+                              addressId: selectedAddress?.id,
+                              rushDelivery: selectedDeliveryType == DeliveryType.rush,
+                              useWallet: _userWantsWallet,
+                              promoCode: promoCode ?? '',
+                            ));
+                        Navigator.of(context).pop();
+                      },
+                      promoMode: billSummaryData?.promoApplied?.promoMode ?? '',
+                      discountAmount:
+                          billSummaryData?.promoApplied?.discountAmount ?? '',
+                      isRushDelivery: billSummaryData?.isRushDelivery,
+                      walletAmountUsed: finalWalletAmountUsed,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildCheckoutSection() {
     final l10n = AppLocalizations.of(context);
     return Container(
@@ -1685,45 +1743,34 @@ class _CartPageState extends State<CartPage> {
       child: selectedAddress != null
           ? Row(
               children: [
-                if (totalAmount > 0.0)
-                  if (selectedPaymentMethod != null &&
-                      selectedPaymentMethodType != null) ...[
-                    InkWell(
-                      onTap: _navigateToPaymentOptions,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: PaymentConfig.getPaymentMethodWidget(
-                                    selectedPaymentMethod!,
-                                    size: 24),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                (l10n?.payUsing ?? 'Pay Using').toUpperCase(),
-                                style: TextStyle(
-                                    fontSize: 10.sp, letterSpacing: 1.1),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const Icon(Icons.arrow_drop_up),
-                            ],
+                if (totalAmount > 0.0) ...[
+                  InkWell(
+                    onTap: () => _showBillDetailsBottomSheet(context),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${AppConstant.currency}${totalAmount.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w800,
+                            color: Theme.of(context).colorScheme.tertiary,
                           ),
-                          Text(
-                            PaymentConfig.getPaymentMethodName(
-                                selectedPaymentMethod!),
-                            style: TextStyle(
-                                fontSize: 12.sp, fontWeight: FontWeight.w500),
-                            overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'see details',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primaryColor,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                  ],
+                  ),
+                  const SizedBox(width: 16),
+                ],
                 const SizedBox(height: 5),
                 Expanded(
                   child: SizedBox(

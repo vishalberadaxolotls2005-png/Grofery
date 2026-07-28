@@ -61,35 +61,27 @@ class BillSummaryWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: Colors.grey.shade200, width: 1),
       ),
       child: Padding(
         padding: EdgeInsets.only(
-            left: 12.0.w, right: 12.0.w, top: 12.h, bottom: 12.h),
+            left: 12.0.w, right: 12.0.w, top: 16.h, bottom: 16.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n?.billDetails ?? 'Bill details',
-              style: TextStyle(
-                fontSize: isTablet(context) ? 24 : 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-            ),
-            const SizedBox(height: 20),
 
             // Items total row
             _buildItemRow(
               context: context,
               icon: TablerIcons.receipt,
-              label: l10n?.itemsTotal ?? 'Items total',
+              label: l10n?.itemsTotal ?? 'Item total',
               originalPrice: itemsOriginalPrice >= 0
                   ? '$currency${itemsOriginalPrice.toStringAsFixed(2)}'
                   : null,
               finalPrice: '$currency${itemsDiscountedPrice.toStringAsFixed(2)}',
               hasDiscount: itemsOriginalPrice >= 0 ? false : true,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
 
             // Delivery charge row
             _buildItemRow(
@@ -101,9 +93,9 @@ class BillSummaryWidget extends StatelessWidget {
                   ? (l10n?.free ?? 'FREE')
                   : '$currency${deliveryChargeOriginal.toStringAsFixed(2)}',
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 4),
 
-            if (perStoreDropOffFees != null)
+            if (perStoreDropOffFees != null) ...[
               _buildItemRow(
                 context: context,
                 icon: TablerIcons.building_store,
@@ -112,8 +104,8 @@ class BillSummaryWidget extends StatelessWidget {
                     ? (l10n?.free ?? 'FREE')
                     : '$currency${perStoreDropOffFees!.toStringAsFixed(2)}',
               ),
-
-            if (perStoreDropOffFees != null) const SizedBox(height: 16),
+              const SizedBox(height: 4),
+            ],
 
             // Handling charge row
             _buildItemRow(
@@ -124,10 +116,9 @@ class BillSummaryWidget extends StatelessWidget {
                   ? (l10n?.free ?? 'FREE')
                   : '$currency${handlingCharge.toStringAsFixed(2)}',
             ),
+            const SizedBox(height: 4),
 
-            const SizedBox(height: 16),
-
-            // Promo Discount Row (Added here for transparency)
+            // Promo Discount Row
             if (promoCode != null &&
                 promoCode!.isNotEmpty &&
                 promoDiscount != null &&
@@ -135,11 +126,11 @@ class BillSummaryWidget extends StatelessWidget {
               _buildItemRow(
                 context: context,
                 icon: TablerIcons.rosette_discount_filled,
-                label: l10n?.promoDiscount ?? 'Promo Discount',
-                finalPrice: '-$currency${promoDiscount!.toStringAsFixed(2)}',
-                finalPriceColor: const Color(0xFF149400),
+                label: l10n?.promoDiscount ?? 'Product discount',
+                finalPrice: '- $currency${promoDiscount!.toStringAsFixed(2)}',
+                finalPriceColor: const Color(0xFF0F766E), // Teal color matching FREE
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
             ],
 
             // Wallet Amount Row
@@ -148,10 +139,10 @@ class BillSummaryWidget extends StatelessWidget {
                 context: context,
                 icon: Icons.account_balance_wallet,
                 label: 'Wallet Amount Used',
-                finalPrice: '-$currency${walletAmountUsed!.toStringAsFixed(2)}',
-                finalPriceColor: Colors.orange.shade800,
+                finalPrice: '- $currency${walletAmountUsed!.toStringAsFixed(2)}',
+                finalPriceColor: const Color(0xFF0F766E),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
             ],
 
             /// For Cart Bill Promo Preview
@@ -345,18 +336,22 @@ class BillSummaryWidget extends StatelessWidget {
               // Removed duplicate from here as it's now in the main list
             ],
 
-            // Dotted line separator
-            buildDottedLine(context),
             const SizedBox(height: 12),
+            Container(
+              height: 1,
+              width: double.infinity,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 16),
 
             // Grand total row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  l10n?.grandTotal ?? 'Grand total',
+                  l10n?.grandTotal ?? 'Total',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.tertiary,
                   ),
@@ -364,9 +359,9 @@ class BillSummaryWidget extends StatelessWidget {
                 Text(
                   '${AppConstant.currency}${grandTotal.toStringAsFixed(2)}',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).colorScheme.tertiary,
                   ),
                 ),
               ],
@@ -542,70 +537,73 @@ class BillSummaryWidget extends StatelessWidget {
     bool hasDiscount = false,
     Color? finalPriceColor,
   }) {
-    final isFree = finalPrice.toUpperCase() == 'FREE';
+    final isFree = finalPrice.toUpperCase() == 'FREE' || finalPrice.toUpperCase() == AppLocalizations.of(context)?.free?.toUpperCase();
     final effectivePriceColor = finalPriceColor ??
         (isFree
-            ? const Color(0xFF149400)
-            : Theme.of(context).colorScheme.tertiary);
+            ? const Color(0xFF0F766E) // Teal for FREE
+            : Theme.of(context).colorScheme.tertiary.withOpacity(0.9));
 
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Theme.of(context).colorScheme.tertiary.withOpacity(0.5),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.tertiary.withOpacity(0.5),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.tertiary.withOpacity(0.8),
+                  ),
+                ),
+                if (additionalInfo != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    additionalInfo,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Row(
             children: [
+              if (hasDiscount && originalPrice != null) ...[
+                Text(
+                  originalPrice,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
               Text(
-                label,
+                finalPrice,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color:
-                      Theme.of(context).colorScheme.tertiary.withOpacity(0.8),
+                  color: effectivePriceColor,
                 ),
               ),
-              if (additionalInfo != null)
-                Text(
-                  additionalInfo,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
             ],
           ),
-        ),
-        Row(
-          children: [
-            if (hasDiscount && originalPrice != null) ...[
-              Text(
-                originalPrice,
-                style: TextStyle(
-                  fontSize: 14,
-                  color:
-                      Theme.of(context).colorScheme.tertiary.withOpacity(0.3),
-                  decoration: TextDecoration.lineThrough,
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Text(
-              finalPrice,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isFree ? FontWeight.bold : FontWeight.w600,
-                color: effectivePriceColor,
-              ),
-            ),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
