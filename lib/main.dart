@@ -74,6 +74,9 @@ import 'screens/home_page/bloc/feature_section_product/feature_section_product_b
 import 'screens/home_page/bloc/sub_category/sub_category_bloc.dart';
 import 'screens/home_page/bloc/explore/explore_bloc.dart';
 import 'screens/home_page/bloc/explore/explore_event.dart';
+import 'screens/home_page/bloc/special_offer/special_offer_bloc.dart';
+import 'screens/home_page/bloc/special_offer/special_offer_event.dart';
+import 'screens/home_page/repo/special_offer_repo.dart';
 import 'screens/home_page/bloc/recommended_products/recommended_products_bloc.dart';
 import 'screens/home_page/repo/recommended_products_repo.dart';
 import 'screens/home_page/bloc/target_gift/target_gift_bloc.dart';
@@ -180,6 +183,9 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (context) => BannerBloc(),
+        ),
+        BlocProvider(
+          create: (context) => SpecialOfferBloc(SpecialOfferRepository())..add(FetchSpecialOffers()),
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(const LoadLanguage()),

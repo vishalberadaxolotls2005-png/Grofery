@@ -13,11 +13,13 @@ import 'package:grofery_user/utils/widgets/custom_toast.dart';
 class ExploreMoreCarousel extends StatefulWidget {
   final List<ExploreData> banners;
   final int totalCount;
+  final String? title;
 
   const ExploreMoreCarousel({
     super.key,
     required this.banners,
     required this.totalCount,
+    this.title,
   });
 
   @override
@@ -79,7 +81,7 @@ class _ExploreMoreCarouselState extends State<ExploreMoreCarousel> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Explore more',
+                widget.title ?? 'Explore more',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,

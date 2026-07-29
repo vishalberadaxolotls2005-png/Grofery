@@ -36,6 +36,7 @@ import '../bloc/banner/banner_state.dart';
 import '../bloc/brands/brands_bloc.dart';
 import '../model/category_model.dart';
 import '../model/featured_section_product_model.dart';
+import 'package:grofery_user/screens/home_page/model/explore_model.dart';
 import '../widgets/animated_text_field.dart';
 import '../widgets/banner_slider.dart';
 import '../bloc/category/category_state.dart';
@@ -55,6 +56,9 @@ import '../bloc/recommended_products/recommended_products_state.dart';
 import '../bloc/target_gift/target_gift_bloc.dart';
 import '../bloc/target_gift/target_gift_event.dart';
 import '../../product_listing_page/model/product_listing_type.dart';
+import '../bloc/special_offer/special_offer_bloc.dart';
+import '../bloc/special_offer/special_offer_event.dart';
+import '../bloc/special_offer/special_offer_state.dart';
 import 'package:grofery_user/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
 
@@ -536,6 +540,7 @@ class _HomePageState extends State<HomePage>
       context.read<GetAddressListBloc>().add(FetchUserAddressList());
       context.read<RecommendedProductsBloc>().add(FetchRecommendedProducts());
       context.read<TargetGiftBloc>().add(FetchTargetGift());
+      context.read<SpecialOfferBloc>().add(FetchSpecialOffers());
     } else {
       context
           .read<SubCategoryBloc>()
@@ -1331,6 +1336,37 @@ class _HomePageState extends State<HomePage>
                                                                       .red))),
                                                     );
                                                   }
+                                                }
+                                                return const SizedBox.shrink();
+                                              },
+                                            ),
+                                          ),
+                                          SliverToBoxAdapter(
+                                            child: BlocBuilder<SpecialOfferBloc, SpecialOfferState>(
+                                              builder: (context, state) {
+                                                if (state is SpecialOfferLoading) {
+                                                  return Padding(
+                                                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                                    child: ShimmerWidget.rectangular(
+                                                      height: 150,
+                                                      width: double.infinity,
+                                                      borderRadius: 12,
+                                                      isBorder: true,
+                                                    ),
+                                                  );
+                                                } else if (state is SpecialOfferLoaded) {
+                                                  final banners = state.specialOfferModel.data?.data ?? [];
+                                                  if (banners.isEmpty) return const SizedBox.shrink();
+
+                                                  return ExploreMoreCarousel(
+                                                    title: 'Special Offer',
+                                                    banners: banners.map((b) => ExploreData(
+                                                      id: b.id,
+                                                      image: b.bannerImage,
+                                                      title: 'Special Offer',
+                                                    )).toList(),
+                                                    totalCount: banners.length,
+                                                  );
                                                 }
                                                 return const SizedBox.shrink();
                                               },
