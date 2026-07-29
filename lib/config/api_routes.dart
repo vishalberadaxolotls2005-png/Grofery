@@ -107,4 +107,7 @@ class ApiRoutes {
   static String targetGiftApi = '${AppConstant.baseUrl}user/target-gift';
   static String targetGiftHistoryApi = '${AppConstant.baseUrl}user/all-target-gifts';
   static String claimTargetGiftApi = '${AppConstant.baseUrl}user/claim-target-gift';
+  static String supportQueryApi = '${AppConstant.baseUrl}user/support-query';
+  static String supportTicketTypesApi = '${AppConstant.baseUrl}user/support-ticket-types';
 }
+

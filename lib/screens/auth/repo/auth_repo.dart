@@ -45,6 +45,10 @@ class AuthRepository {
       if (response.data['success'] == true) {
         List<AuthModel> userData = [];
         userData.add(AuthModel.fromJson(response.data));
+        
+        // Print the token so you can see it in your logs
+        print('Token: ${userData.first.accessToken}');
+        
         return userData;
       } else {
         // API returned failure — throw a meaningful exception with the message

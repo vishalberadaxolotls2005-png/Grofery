@@ -11,6 +11,11 @@ import 'package:grofery_user/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:grofery_user/config/constant.dart';
+import 'package:grofery_user/utils/widgets/custom_textfield.dart';
+import 'package:grofery_user/utils/widgets/custom_button.dart';
+import 'package:grofery_user/screens/support_page/repo/support_repo.dart';
+import 'package:grofery_user/screens/support_page/model/support_ticket_type_model.dart';
+import 'package:grofery_user/config/global.dart';
 
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key});
@@ -23,6 +28,15 @@ class _SupportPageState extends State<SupportPage> {
   String phoneNumber = '';
   String email = '';
 
+  final TextEditingController _subjectController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  bool _showMessageForm = false;
+  bool _isSubmitting = false;
+
+  final SupportRepository _supportRepo = SupportRepository();
+  List<SupportTicketTypeModel> _ticketTypes = [];
+  SupportTicketTypeModel? _selectedTicketType;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -33,7 +47,17 @@ class _SupportPageState extends State<SupportPage> {
     email = (webSettings != null && webSettings.supportEmail.isNotEmpty && webSettings.supportEmail != 'null') 
         ? webSettings.supportEmail 
         : 'groferyhoreca.@gmail.com';
+    _fetchTicketTypes();
     super.initState();
+  }
+
+  Future<void> _fetchTicketTypes() async {
+    final types = await _supportRepo.getTicketTypes();
+    if (mounted) {
+      setState(() {
+        _ticketTypes = types;
+      });
+    }
   }
 
   Future<void> _launchUrl(String url) async {
@@ -43,6 +67,13 @@ class _SupportPageState extends State<SupportPage> {
     } else {
       debugPrint('Could not launch $url');
     }
+  }
+
+  @override
+  void dispose() {
+    _subjectController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   void _copyToClipboard(BuildContext context, String text, String label) {
@@ -97,6 +128,141 @@ class _SupportPageState extends State<SupportPage> {
                   onTap: () => _launchUrl('mailto:$currentEmail?subject=Support Request'),
                   onLongPress: () => _copyToClipboard(context, currentEmail, AppLocalizations.of(context)!.emailCopied),
                 ),
+
+                SizedBox(height: 16.h),
+
+                // Message Card
+                _buildContactCard(
+                  context: context,
+                  icon: Icons.message,
+                  title: 'Message Us',
+                  subtitle: 'Send a direct query',
+                  onTap: () {
+                    setState(() {
+                      _showMessageForm = !_showMessageForm;
+                    });
+                  },
+                  onLongPress: () {},
+                ),
+
+                if (_showMessageForm) ...[
+                  SizedBox(height: 24.h),
+                  Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(16.r),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Direct Query',
+                          style: TextStyle(
+                            fontSize: isTablet(context) ? 20 : 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+
+                        DropdownButtonFormField<SupportTicketTypeModel>(
+                          value: _selectedTicketType,
+                          decoration: InputDecoration(
+                            labelText: 'Subject',
+                            contentPadding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 8.w),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                            ),
+                          ),
+                          hint: Text('Select Subject'),
+                          items: _ticketTypes.map((type) {
+                            return DropdownMenuItem<SupportTicketTypeModel>(
+                              value: type,
+                              child: Text(type.title ?? ''),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedTicketType = value;
+                            });
+                          },
+                        ),
+                        SizedBox(height: 16.h),
+
+                        CustomTextFormField(
+                          controller: _descriptionController,
+                          labelText: 'Description',
+                          hintText: 'Describe your query...',
+                          maxLines: 5,
+                          minLines: 3,
+                          textInputAction: TextInputAction.done,
+                        ),
+                        SizedBox(height: 24.h),
+
+                        CustomButton(
+                          text: 'Submit Query',
+                          isLoading: _isSubmitting,
+                          onPressed: () async {
+                            if (_selectedTicketType == null) {
+                              ToastManager.show(context: context, message: 'Please select a subject');
+                              return;
+                            }
+                            if (_descriptionController.text.trim().isEmpty) {
+                              ToastManager.show(context: context, message: 'Please enter a description');
+                              return;
+                            }
+
+                            setState(() {
+                              _isSubmitting = true;
+                            });
+
+                            FocusScope.of(context).unfocus();
+                            
+                            try {
+                              final response = await _supportRepo.submitSupportQuery(
+                                ticketTypeId: _selectedTicketType!.id ?? 1,
+                                subject: _selectedTicketType!.title ?? 'Support Ticket',
+                                description: _descriptionController.text,
+                                userId: Global.userData?.userId.toString() ?? '',
+                              );
+                              
+                              if (mounted) {
+                                ToastManager.show(
+                                  context: context,
+                                  message: response['message'] ?? 'Query sent successfully!',
+                                  type: ToastType.success,
+                                );
+                                _descriptionController.clear();
+                                setState(() {
+                                  _selectedTicketType = null;
+                                  _showMessageForm = false;
+                                });
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ToastManager.show(
+                                  context: context, 
+                                  message: e.toString(),
+                                  type: ToastType.error,
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isSubmitting = false;
+                                });
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                SizedBox(height: 16.h),
               ],
             ),
           );
