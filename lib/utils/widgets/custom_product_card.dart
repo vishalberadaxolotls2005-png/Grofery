@@ -35,6 +35,7 @@ class CustomProductCard extends StatelessWidget {
   final String productSlug;
   final String productPrice;
   final List<String> productTags;
+  final String? productTag;
   final String specialPrice;
   final String estimatedDeliveryTime;
   final String? assetImage;
@@ -73,6 +74,7 @@ class CustomProductCard extends StatelessWidget {
     required this.productSlug,
     required this.productPrice,
     required this.productTags,
+    this.productTag,
     this.assetImage,
     required this.specialPrice,
     required this.estimatedDeliveryTime,
@@ -232,6 +234,16 @@ class CustomProductCard extends StatelessWidget {
                                       quickDeliveryAvailable),
                                   SizedBox(height: 3.h),
                                   _buildBulkTierPricing(context, currentQty),
+                                  if (productTag != null && productTag!.isNotEmpty) ...[
+                                    SizedBox(height: 3.h),
+                                    Text(
+                                      productTag!,
+                                      style: TextStyle(
+                                        fontSize: 11.sp,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
                                   SizedBox(height: 3.h),
                                   ratingWidget(context),
                                   if (minQty > 1) ...[
@@ -1004,6 +1016,16 @@ class CustomProductCard extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                              if (productTag != null && productTag!.isNotEmpty) ...[
+                                SizedBox(height: 3.h),
+                                Text(
+                                  productTag!,
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
                               SizedBox(height: 3.h),
                               ratingWidget(context),
                               if (minQty > 1) ...[
@@ -1203,7 +1225,17 @@ class CustomProductCard extends StatelessWidget {
                                   ),
                                 ),
                               ],
-                              SizedBox(height: 8.h),
+                              SizedBox(height: 4.h),
+                              if (productTag != null && productTag!.isNotEmpty) ...[
+                                Text(
+                                  productTag!,
+                                  style: TextStyle(
+                                    fontSize: 11.sp,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                                SizedBox(height: 4.h),
+                              ],
                               Row(
                                 children: [
                                   Container(

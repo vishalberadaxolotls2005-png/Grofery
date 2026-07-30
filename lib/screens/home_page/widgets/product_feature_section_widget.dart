@@ -149,6 +149,7 @@ class ProductFeatureSectionWidget extends StatelessWidget {
                     productSlug: product.slug,
                     productPrice: product.variants.first.price.toString(),
                     productTags: product.tags,
+                    productTag: product.tag,
                     specialPrice:
                         product.variants.first.specialPrice.toString(),
                     estimatedDeliveryTime: product.estimatedDeliveryTime,

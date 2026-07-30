@@ -610,6 +610,7 @@ class _ProductListingPageState extends State<ProductListingPage> {
                                 productSlug: product.slug,
                                 productPrice: variant.price.toString(),
                                 productTags: product.tags,
+                                productTag: product.tag,
                                 specialPrice: variant.specialPrice.toString(),
                                 estimatedDeliveryTime:
                                     product.estimatedDeliveryTime,
