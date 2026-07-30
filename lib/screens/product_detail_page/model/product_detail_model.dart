@@ -83,6 +83,7 @@ class ProductData {
   late int isReturnable;
   late List<String> tags;
   String? tag;
+  String? remark;
   late List<CustomField> customFields;
   late String warrantyPeriod;
   late String guaranteePeriod;
@@ -129,6 +130,7 @@ class ProductData {
     int? isReturnable,
     List<String>? tags,
     this.tag,
+    this.remark,
     List<CustomField>? customFields,
     String? warrantyPeriod,
     String? guaranteePeriod,
@@ -280,6 +282,7 @@ class ProductData {
       }
 
       tag = json['tag']?.toString();
+      remark = json['remark']?.toString() ?? json['remarks']?.toString();
 
       customFields = switch (json['custom_fields']) {
         Map<String, dynamic> map => map.entries
@@ -367,6 +370,7 @@ class ProductData {
     isReturnable = 0;
     tags = [];
     tag = null;
+    remark = null;
     customFields = [];
     warrantyPeriod = '';
     guaranteePeriod = '';
@@ -417,6 +421,7 @@ class ProductData {
     data['is_returnable'] = isReturnable;
     data['tags'] = tags;
     data['tag'] = tag;
+    data['remark'] = remark;
     data['warranty_period'] = warrantyPeriod;
     data['guarantee_period'] = guaranteePeriod;
     data['made_in'] = madeIn;

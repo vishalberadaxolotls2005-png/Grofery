@@ -64,6 +64,7 @@ class YouMightAlsoLikeProductWidget extends StatelessWidget {
                   productPrice: product.variants.first.price.toString(),
                   productTags: product.tags,
                   productTag: product.tag,
+                  productRemark: product.remark,
                   specialPrice: product.variants.first.specialPrice.toString(),
                   estimatedDeliveryTime: product.estimatedDeliveryTime,
                   ratings: product.ratings.toDouble(),

@@ -36,6 +36,7 @@ class CustomProductCard extends StatelessWidget {
   final String productPrice;
   final List<String> productTags;
   final String? productTag;
+  final String? productRemark;
   final String specialPrice;
   final String estimatedDeliveryTime;
   final String? assetImage;
@@ -75,6 +76,7 @@ class CustomProductCard extends StatelessWidget {
     required this.productPrice,
     required this.productTags,
     this.productTag,
+    this.productRemark,
     this.assetImage,
     required this.specialPrice,
     required this.estimatedDeliveryTime,
@@ -257,6 +259,10 @@ class CustomProductCard extends StatelessWidget {
                                         fontFamily: AppTheme.fontFamily,
                                       ),
                                     ),
+                                  ],
+                                  if (productRemark != null && productRemark!.isNotEmpty) ...[
+                                    SizedBox(height: 3.h),
+                                    _ExpandableRemarkWidget(text: productRemark!),
                                   ],
                                   SizedBox(height: 4.h),
                                 ],
@@ -1040,6 +1046,10 @@ class CustomProductCard extends StatelessWidget {
                                   ),
                                 ),
                               ],
+                              if (productRemark != null && productRemark!.isNotEmpty) ...[
+                                SizedBox(height: 3.h),
+                                _ExpandableRemarkWidget(text: productRemark!),
+                              ],
                               if (tieredPricing != null &&
                                   tieredPricing!.isNotEmpty)
                                 Padding(
@@ -1236,6 +1246,7 @@ class CustomProductCard extends StatelessWidget {
                                 ),
                                 SizedBox(height: 4.h),
                               ],
+
                               Row(
                                 children: [
                                   Container(
@@ -1277,6 +1288,10 @@ class CustomProductCard extends StatelessWidget {
                                     fontFamily: AppTheme.fontFamily,
                                   ),
                                 ),
+                              ],
+                              if (productRemark != null && productRemark!.isNotEmpty) ...[
+                                SizedBox(height: 4.h),
+                                _ExpandableRemarkWidget(text: productRemark!),
                               ],
                             ],
                           ),
@@ -2243,6 +2258,144 @@ class _OptimisticWishlistButtonState extends State<OptimisticWishlistButton> {
           color: isWishlisted ? Colors.red : Colors.black87,
           size: widget.iconSize.r,
         ),
+      ),
+    );
+  }
+}
+
+class _ExpandableRemarkWidget extends StatefulWidget {
+  final String text;
+
+  const _ExpandableRemarkWidget({Key? key, required this.text}) : super(key: key);
+
+  @override
+  _ExpandableRemarkWidgetState createState() => _ExpandableRemarkWidgetState();
+}
+
+class _ExpandableRemarkWidgetState extends State<_ExpandableRemarkWidget> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textStyle = TextStyle(
+          fontSize: 11.sp,
+          color: Colors.grey.shade700,
+          height: 1.5,
+        );
+
+        final lines = widget.text
+            .split('\n')
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .map((e) => e.startsWith('•') ? e.substring(1).trim() : (e.startsWith('-') ? e.substring(1).trim() : e))
+            .toList();
+
+        final bulletPainter = TextPainter(
+          text: TextSpan(text: "•  ", style: textStyle),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final double bulletWidth = bulletPainter.width;
+        final double textMaxWidth = constraints.maxWidth - bulletWidth;
+
+        int totalLineCount = 0;
+        for (var line in lines) {
+          final tp = TextPainter(
+            text: TextSpan(text: line, style: textStyle),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: textMaxWidth > 0 ? textMaxWidth : 100);
+          totalLineCount += tp.computeLineMetrics().length;
+        }
+
+        final bool isOverflowing = totalLineCount > 2;
+
+        List<Widget> children = [];
+        int linesUsed = 0;
+
+        for (var line in lines) {
+          if (_isExpanded) {
+            children.add(_buildBulletRow(line, textStyle, null));
+            continue;
+          }
+
+          final tp = TextPainter(
+            text: TextSpan(text: line, style: textStyle),
+            textDirection: TextDirection.ltr,
+          )..layout(maxWidth: textMaxWidth > 0 ? textMaxWidth : 100);
+          
+          int lineCount = tp.computeLineMetrics().length;
+          
+          if (linesUsed + lineCount <= 2) {
+            children.add(_buildBulletRow(line, textStyle, null));
+            linesUsed += lineCount;
+          } else {
+            int remainingLines = 2 - linesUsed;
+            if (remainingLines > 0) {
+              children.add(_buildBulletRow(line, textStyle, remainingLines));
+            }
+            break; 
+          }
+          if (linesUsed >= 2) break;
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...children,
+            if (isOverflowing || _isExpanded)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(top: 2.h),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _isExpanded ? "see less " : "see more ",
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: const Color(0xFFD63B5E),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Icon(
+                        _isExpanded
+                            ? Icons.keyboard_arrow_up
+                            : Icons.keyboard_arrow_down,
+                        size: 14.sp,
+                        color: const Color(0xFFD63B5E),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBulletRow(String text, TextStyle style, int? maxLines) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 2.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("•  ", style: style),
+          Expanded(
+            child: Text(
+              text,
+              style: style,
+              maxLines: maxLines,
+              overflow: maxLines != null ? TextOverflow.ellipsis : null,
+            ),
+          ),
+        ],
       ),
     );
   }
