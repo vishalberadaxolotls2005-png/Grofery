@@ -23,6 +23,7 @@ import 'package:grofery_user/screens/home_page/bloc/feature_section_product/feat
 import 'package:grofery_user/screens/home_page/bloc/sub_category/sub_category_bloc.dart';
 import 'package:grofery_user/screens/home_page/bloc/sub_category/sub_category_event.dart';
 import 'package:grofery_user/screens/home_page/widgets/brands_widget.dart';
+import 'package:grofery_user/screens/home_page/widgets/special_offer_carousel.dart';
 import 'package:grofery_user/screens/near_by_stores/bloc/near_by_store/near_by_store_bloc.dart';
 import 'package:grofery_user/screens/user_profile/bloc/user_profile_bloc/user_profile_bloc.dart';
 import 'package:grofery_user/utils/widgets/custom_image_container.dart';
@@ -1358,13 +1359,9 @@ class _HomePageState extends State<HomePage>
                                                   final banners = state.specialOfferModel.data?.data ?? [];
                                                   if (banners.isEmpty) return const SizedBox.shrink();
 
-                                                  return ExploreMoreCarousel(
+                                                  return SpecialOfferCarousel(
                                                     title: 'Special Offer',
-                                                    banners: banners.map((b) => ExploreData(
-                                                      id: b.id,
-                                                      image: b.bannerImage,
-                                                      title: 'Special Offer',
-                                                    )).toList(),
+                                                    banners: banners,
                                                     totalCount: banners.length,
                                                   );
                                                 }

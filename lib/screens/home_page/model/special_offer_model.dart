@@ -1,3 +1,5 @@
+import 'package:grofery_user/screens/product_detail_page/model/product_detail_model.dart';
+
 class SpecialOfferModel {
   bool? success;
   String? message;
@@ -70,12 +72,14 @@ class SpecialOfferBannerData {
   String? bannerImage;
   String? status;
   String? createdAt;
+  List<ProductData>? products;
 
   SpecialOfferBannerData({
     this.id,
     this.bannerImage,
     this.status,
     this.createdAt,
+    this.products,
   });
 
   SpecialOfferBannerData.fromJson(Map<String, dynamic> json) {
@@ -83,6 +87,12 @@ class SpecialOfferBannerData {
     bannerImage = json['banner_image'];
     status = json['status'];
     createdAt = json['created_at'];
+    if (json['products'] != null) {
+      products = <ProductData>[];
+      json['products'].forEach((v) {
+        products!.add(ProductData.fromJson(v));
+      });
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -91,6 +101,9 @@ class SpecialOfferBannerData {
     data['banner_image'] = bannerImage;
     data['status'] = status;
     data['created_at'] = createdAt;
+    if (products != null) {
+      data['products'] = products!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 

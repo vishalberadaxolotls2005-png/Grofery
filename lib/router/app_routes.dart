@@ -54,6 +54,7 @@ import 'package:grofery_user/screens/wishlist_page/view/wishlist_product_listing
 import 'package:grofery_user/screens/manage_outlet_page/view/manage_outlet_page.dart';
 import 'package:grofery_user/screens/manage_outlet_page/view/add_outlet_page.dart';
 import 'package:grofery_user/screens/target_gift_history/view/target_gift_history_page.dart';
+import 'package:grofery_user/screens/special_offer/view/special_offer_product_listing_page.dart';
 
 Page platformPage(Widget child) {
   if (Platform.isIOS) {
@@ -110,6 +111,7 @@ class AppRoutes {
   static const String manageOutlet = '/manage-outlet';
   static const String addOutlet = '/add-outlet';
   static const String targetGiftHistory = '/target-gift-history';
+  static const String specialOfferListing = '/special-offer-listing';
 }
 
 class MyAppRoute {
@@ -589,6 +591,19 @@ class MyAppRoute {
           path: AppRoutes.targetGiftHistory,
           pageBuilder: (context, state) =>
               platformPage(const TargetGiftHistoryPage()),
+        ),
+        GoRoute(
+          name: 'special-offer-listing',
+          path: AppRoutes.specialOfferListing,
+          pageBuilder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            final products = extra['products'] as List<dynamic>? ?? [];
+            return platformPage(
+              SpecialOfferProductListingPage(
+                products: products.cast(),
+              ),
+            );
+          },
         ),
       ]);
 }
