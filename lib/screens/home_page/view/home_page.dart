@@ -99,6 +99,12 @@ class _HomePageState extends State<HomePage>
   bool _hasShownHolidayPopup = false;
   bool _isHolidayPopupShowing = false;
 
+  // ✅ FIX: throttle the pagination check so we don't recompute on
+  // every single ScrollUpdateNotification (which fires dozens of
+  // times per second during a fling). This was one of the causes of
+  // the scroll-down jank.
+  DateTime? _lastLoadMoreCheck;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -976,6 +982,47 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  // ✅ FIX: this now returns a *sliver* (SliverList / SliverToBoxAdapter)
+  // instead of a shrinkWrap+NeverScrollableScrollPhysics ListView.
+  //
+  // The old shrinkWrap ListView had to build & layout EVERY child
+  // immediately (it can't be lazy), and every time pagination added
+  // more sections it re-laid-out the whole growing list. That's what
+  // was causing scroll-down to get slower and "stuck" the further you
+  // scrolled and the more pages got loaded. SliverList lets
+  // CustomScrollView lazily build/dispose sections as they scroll
+  // in and out, like it's supposed to.
+  Widget _buildFeatureSectionSliver({
+    required List<FeatureSectionData> sections,
+    required bool isLoading,
+    required bool hasReachedMax,
+  }) {
+    if (isLoading) {
+      return SliverToBoxAdapter(child: productFeaturedSectionEmptyState());
+    }
+
+    if (sections.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    final int itemCount = sections.length + (hasReachedMax ? 0 : 1);
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (index < sections.length) {
+            return _buildFeatureSection(sections[index]);
+          }
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CustomCircularProgressIndicator()),
+          );
+        },
+        childCount: itemCount,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("DEBUG_API: [HomePage.build]");
@@ -1343,21 +1390,34 @@ class _HomePageState extends State<HomePage>
                                             ),
                                           ),
                                           SliverToBoxAdapter(
-                                            child: BlocBuilder<SpecialOfferBloc, SpecialOfferState>(
+                                            child: BlocBuilder<SpecialOfferBloc,
+                                                SpecialOfferState>(
                                               builder: (context, state) {
-                                                if (state is SpecialOfferLoading) {
+                                                if (state
+                                                    is SpecialOfferLoading) {
                                                   return Padding(
-                                                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                                    child: ShimmerWidget.rectangular(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 16.0,
+                                                            vertical: 8.0),
+                                                    child: ShimmerWidget
+                                                        .rectangular(
                                                       height: 150,
                                                       width: double.infinity,
                                                       borderRadius: 12,
                                                       isBorder: true,
                                                     ),
                                                   );
-                                                } else if (state is SpecialOfferLoaded) {
-                                                  final banners = state.specialOfferModel.data?.data ?? [];
-                                                  if (banners.isEmpty) return const SizedBox.shrink();
+                                                } else if (state
+                                                    is SpecialOfferLoaded) {
+                                                  final banners = state
+                                                          .specialOfferModel
+                                                          .data
+                                                          ?.data ??
+                                                      [];
+                                                  if (banners.isEmpty)
+                                                    return const SizedBox
+                                                        .shrink();
 
                                                   return SpecialOfferCarousel(
                                                     title: 'Special Offer',
@@ -1369,59 +1429,39 @@ class _HomePageState extends State<HomePage>
                                               },
                                             ),
                                           ),
-                                          SliverToBoxAdapter(
-                                            child: BlocBuilder<
-                                                FeatureSectionProductBloc,
-                                                FeatureSectionProductState>(
-                                              builder: (context, state) {
-                                                if (state
-                                                    is FeatureSectionProductLoaded) {
-                                                  return ListView(
-                                                    padding: EdgeInsets.zero,
-                                                    shrinkWrap: true,
-                                                    physics:
-                                                        const NeverScrollableScrollPhysics(),
-                                                    children: [
-                                                      if (state
-                                                          .featureSectionProductData
-                                                          .any((s) => (s
-                                                                      .products ??
-                                                                  [])
-                                                              .isNotEmpty)) ...[
-                                                        if (state
-                                                            .featureSectionProductData
-                                                            .isNotEmpty) ...[
-                                                          ...state
-                                                              .featureSectionProductData
-                                                              .where((section) =>
-                                                                  (section.products ??
-                                                                          [])
-                                                                      .isNotEmpty)
-                                                              .map((section) =>
-                                                                  _buildFeatureSection(
-                                                                      section)),
-                                                          if (!state
-                                                              .hasReachedMax)
-                                                            const Padding(
-                                                              padding:
-                                                                  EdgeInsets
-                                                                      .all(
-                                                                          16.0),
-                                                              child: Center(
-                                                                  child:
-                                                                      CustomCircularProgressIndicator()),
-                                                            ),
-                                                        ]
-                                                      ]
-                                                    ],
-                                                  );
-                                                } else if (state
-                                                    is FeatureSectionProductLoading) {
-                                                  return productFeaturedSectionEmptyState();
-                                                }
-                                                return SizedBox.shrink();
-                                              },
-                                            ),
+                                          // ✅ FIX: was a shrinkWrap ListView
+                                          // wrapped in a SliverToBoxAdapter.
+                                          // Now a real SliverList placed
+                                          // directly in the slivers list so
+                                          // items are built/disposed lazily.
+                                          BlocBuilder<FeatureSectionProductBloc,
+                                              FeatureSectionProductState>(
+                                            builder: (context, state) {
+                                              if (state
+                                                  is FeatureSectionProductLoaded) {
+                                                final sections = state
+                                                    .featureSectionProductData
+                                                    .where((section) =>
+                                                        (section.products ?? [])
+                                                            .isNotEmpty)
+                                                    .toList();
+                                                return _buildFeatureSectionSliver(
+                                                  sections: sections,
+                                                  isLoading: false,
+                                                  hasReachedMax:
+                                                      state.hasReachedMax,
+                                                );
+                                              } else if (state
+                                                  is FeatureSectionProductLoading) {
+                                                return _buildFeatureSectionSliver(
+                                                  sections: const [],
+                                                  isLoading: true,
+                                                  hasReachedMax: true,
+                                                );
+                                              }
+                                              return const SliverToBoxAdapter(
+                                                  child: SizedBox.shrink());
+                                            },
                                           ),
                                           SliverToBoxAdapter(
                                               child: SizedBox(height: 180.h)),
@@ -1654,59 +1694,36 @@ class _HomePageState extends State<HomePage>
                                               categorySlug: category.slug ?? '',
                                             ),
                                           ),
-                                          SliverToBoxAdapter(
-                                            child: BlocBuilder<
-                                                FeatureSectionProductBloc,
-                                                FeatureSectionProductState>(
-                                              builder: (context, state) {
-                                                if (state
-                                                    is FeatureSectionProductLoaded) {
-                                                  return ListView(
-                                                    padding: EdgeInsets.zero,
-                                                    shrinkWrap: true,
-                                                    physics:
-                                                        const NeverScrollableScrollPhysics(),
-                                                    children: [
-                                                      if (state
-                                                          .featureSectionProductData
-                                                          .any((s) => (s
-                                                                      .products ??
-                                                                  [])
-                                                              .isNotEmpty)) ...[
-                                                        if (state
-                                                            .featureSectionProductData
-                                                            .isNotEmpty) ...[
-                                                          ...state
-                                                              .featureSectionProductData
-                                                              .where((section) =>
-                                                                  (section.products ??
-                                                                          [])
-                                                                      .isNotEmpty)
-                                                              .map((section) =>
-                                                                  _buildFeatureSection(
-                                                                      section)),
-                                                          if (!state
-                                                              .hasReachedMax)
-                                                            const Padding(
-                                                              padding:
-                                                                  EdgeInsets
-                                                                      .all(
-                                                                          16.0),
-                                                              child: Center(
-                                                                  child:
-                                                                      CustomCircularProgressIndicator()),
-                                                            ),
-                                                        ]
-                                                      ]
-                                                    ],
-                                                  );
-                                                } else if (state
-                                                    is FeatureSectionProductLoading) {
-                                                  return productFeaturedSectionEmptyState();
-                                                }
-                                                return SizedBox.shrink();
-                                              },
-                                            ),
+                                          // ✅ FIX: same shrinkWrap → SliverList
+                                          // fix applied here for category tabs.
+                                          BlocBuilder<FeatureSectionProductBloc,
+                                              FeatureSectionProductState>(
+                                            builder: (context, state) {
+                                              if (state
+                                                  is FeatureSectionProductLoaded) {
+                                                final sections = state
+                                                    .featureSectionProductData
+                                                    .where((section) =>
+                                                        (section.products ?? [])
+                                                            .isNotEmpty)
+                                                    .toList();
+                                                return _buildFeatureSectionSliver(
+                                                  sections: sections,
+                                                  isLoading: false,
+                                                  hasReachedMax:
+                                                      state.hasReachedMax,
+                                                );
+                                              } else if (state
+                                                  is FeatureSectionProductLoading) {
+                                                return _buildFeatureSectionSliver(
+                                                  sections: const [],
+                                                  isLoading: true,
+                                                  hasReachedMax: true,
+                                                );
+                                              }
+                                              return const SliverToBoxAdapter(
+                                                  child: SizedBox.shrink());
+                                            },
                                           ),
                                           SliverToBoxAdapter(
                                               child: SizedBox(height: 180.h)),
@@ -1851,11 +1868,24 @@ class _HomePageState extends State<HomePage>
                       ? NotificationListener<ScrollNotification>(
                           onNotification: (ScrollNotification notification) {
                             _handleScrollNotification(notification);
+                            // ✅ FIX: throttled to at most once every 200ms
+                            // instead of on every ScrollUpdateNotification
+                            // (which fires many times per second during a
+                            // fling). This was adding extra work exactly
+                            // while the user was scrolling, contributing
+                            // to the scroll-down jank.
                             if (notification is ScrollUpdateNotification) {
-                              final metrics = notification.metrics;
-                              if (metrics.pixels >=
-                                  metrics.maxScrollExtent * 0.85) {
-                                _loadMoreForCurrentTab(_tabController.index);
+                              final now = DateTime.now();
+                              final last = _lastLoadMoreCheck;
+                              if (last == null ||
+                                  now.difference(last) >
+                                      const Duration(milliseconds: 200)) {
+                                _lastLoadMoreCheck = now;
+                                final metrics = notification.metrics;
+                                if (metrics.pixels >=
+                                    metrics.maxScrollExtent * 0.85) {
+                                  _loadMoreForCurrentTab(_tabController.index);
+                                }
                               }
                             }
                             return false;

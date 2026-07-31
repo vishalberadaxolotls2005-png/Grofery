@@ -144,7 +144,7 @@ class CustomProductCard extends StatelessWidget {
         return GestureDetector(
           onTap: openContainer,
           child: Opacity(
-            opacity: totalStocks <= 0 ? 0.5 : 1,
+            opacity: 1,
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -420,6 +420,67 @@ class CustomProductCard extends StatelessWidget {
                         .cast<int>(),
                   );
                   currentUniqueItems = state.items.length;
+                }
+
+                if (totalStocks <= 0) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 70.w,
+                        height: 30.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(
+                            color: AppTheme.primaryColor,
+                            width: 1.5.w,
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(5.r),
+                            onTap: () {
+                              ToastManager.show(
+                                context: context,
+                                message: 'You will be notified when product is available',
+                                type: ToastType.authGuard,
+                              );
+                            },
+                            child: Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(TablerIcons.bell,
+                                      size: 14.sp, color: AppTheme.primaryColor),
+                                  SizedBox(width: 2.w),
+                                  Text(
+                                    "Notify",
+                                    style: TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        "Out of stock",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  );
                 }
 
                 return AnimatedContainer(
@@ -1090,6 +1151,74 @@ class CustomProductCard extends StatelessWidget {
   }
 
   Widget _buildSimilarAddButton(BuildContext context) {
+    if (totalStocks <= 0) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(8.r, 4.r, 8.r, 8.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              width: double.infinity,
+              height: 34.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(
+                  color: const Color(0xFFE54A50),
+                  width: 1.0,
+                ),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    ToastManager.show(
+                      context: context,
+                      message: 'You will be notified when product is available',
+                      type: ToastType.authGuard,
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(10.r),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        "NOTIFY",
+                        style: TextStyle(
+                          color: const Color(0xFFE54A50),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13.sp,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Positioned(
+                        right: 12.w,
+                        child: Icon(
+                          TablerIcons.bell,
+                          color: const Color(0xFFE54A50),
+                          size: 16.sp,
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              'Out of stock',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, state) {
         final cartItem = _getCartItem(state);
@@ -1481,6 +1610,60 @@ class CustomProductCard extends StatelessWidget {
   }
 
   Widget _buildAddToCartButton(BuildContext context) {
+    if (totalStocks <= 0) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 95.w,
+            height: 34.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: const Color(0xFFE54A50),
+                width: 1.2,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8.r),
+                onTap: () {
+                  ToastManager.show(
+                    context: context,
+                    message: 'You will be notified when product is available',
+                    type: ToastType.authGuard,
+                  );
+                },
+                child: Center(
+                  child: Text(
+                    'Notify',
+                    style: TextStyle(
+                      color: const Color(0xFFE54A50),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            'Out of stock',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, state) {
         final cartItem = _getCartItem(state);
@@ -1527,7 +1710,7 @@ class CustomProductCard extends StatelessWidget {
                   onTap: () {
                     _handleAddToCart(context, state);
                   },
-                  opacity: totalStocks > 0 ? 1.0 : 0.5,
+                  opacity: 1.0,
                 ),
         );
       },

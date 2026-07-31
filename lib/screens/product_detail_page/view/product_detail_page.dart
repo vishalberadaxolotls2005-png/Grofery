@@ -1394,19 +1394,59 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                       ),
                     )
                   else
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                            color: AppTheme.primaryColor, width: 1.w),
-                      ),
-                      child: Text(
-                        l10n.outOfStock,
-                        style: TextStyle(
-                          color: AppTheme.errorColor,
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              height: 45,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(
+                                  color: AppTheme.primaryColor,
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  onTap: () {
+                                    ToastManager.show(
+                                      context: context,
+                                      message: 'You will be notified when product is available',
+                                      type: ToastType.authGuard,
+                                    );
+                                  },
+                                  child: Center(
+                                    child: Text(
+                                      'Notify',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n.outOfStock,
+                              style: TextStyle(
+                                color: AppTheme.errorColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
