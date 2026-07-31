@@ -913,8 +913,9 @@ class CustomProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Material(
-            color: Colors.transparent,
+          Expanded(
+            child: Material(
+              color: Colors.transparent,
             child: InkWell(
               onTap: () {
                 GoRouter.of(context).push(
@@ -991,12 +992,15 @@ class CustomProductCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  Expanded(
+                    child: Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10.w, vertical: 2.h),
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         _buildQuickDeliveryBadge(quickDeliveryAvailable),
                         SizedBox(height: 3.h),
                         Text(
@@ -1139,11 +1143,13 @@ class CustomProductCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                ),
+              ),
                 ],
               ),
             ),
           ),
-          const Spacer(),
+          ),
           _buildSimilarAddButton(context),
         ],
       ),
