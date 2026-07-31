@@ -7,9 +7,17 @@ import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart' as dio_;
 import 'package:flutter/material.dart';
 import 'package:grofery_user/config/security.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grofery_user/config/global.dart';
+import 'package:grofery_user/config/global_keys.dart';
+import 'package:grofery_user/router/app_routes.dart';
+import 'package:grofery_user/utils/widgets/blocked_user_dialog.dart';
+import 'package:grofery_user/utils/widgets/custom_toast.dart';
 
 class ApiException implements Exception {
-  ApiException(this.errorMessage);
+  ApiException(this.errorMessage) {
+    ApiBaseHelper.handleBlockedUser(errorMessage);
+  }
 
   final String errorMessage;
 
@@ -20,6 +28,38 @@ class ApiException implements Exception {
 }
 
 class ApiBaseHelper {
+  static void handleBlockedUser(String message) {
+    final msg = message.toLowerCase();
+    final isBlocked = msg.contains('block') || msg.contains('inactive') || msg.contains('deactivated');
+    final isUnauth = msg.contains('unauthenticated') || msg.contains('api error (401)') || msg.contains('unauthorized');
+
+    if (isBlocked || isUnauth) {
+      if (Global.token != null) {
+        Global.clearUserData();
+        final context = GlobalKeys.navigatorKey.currentContext;
+        if (context != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            GoRouter.of(context).pushReplacement(AppRoutes.login);
+            if (isBlocked) {
+              BlockedUserDialog.show(context, message);
+            } else {
+              ToastManager.show(context: context, message: "Session expired. Please log in again.", type: ToastType.error);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  void _checkResponse(dio_.Response response) {
+    if (response.data is Map && response.data['success'] == false) {
+      final message = (response.data['message'] ?? response.data['error'] ?? '').toString();
+      if (message.isNotEmpty) {
+        ApiBaseHelper.handleBlockedUser(message);
+      }
+    }
+  }
+
   Future<void> downloadFile(
       {required String url,
         required dio_.CancelToken cancelToken,
@@ -83,6 +123,7 @@ class ApiBaseHelper {
           'response api****$url***************${response.statusCode}*********${response.data}');
 
       responseJson = response;
+      _checkResponse(responseJson);
     } on dio_.DioException catch (e) {
       if (e.response != null) {
         final statusCode = e.response?.statusCode;
@@ -118,6 +159,7 @@ class ApiBaseHelper {
           'response api****$url***************${response.statusCode}*********${response.data}');
 
       responseJson = response;
+      _checkResponse(responseJson);
     } on dio_.DioException catch (e) {
       // DioError handling.
       if (e.response != null) {
@@ -164,6 +206,7 @@ class ApiBaseHelper {
           'response api****$url*****************${response.statusCode}*********${response.data}');
 
       responseJson = response;
+      _checkResponse(responseJson);
     } on dio_.DioException catch (e) {
       // DioError handling.
       if(e.response?.statusCode == 401 && isUserApi == true){}
@@ -221,6 +264,7 @@ class ApiBaseHelper {
       }
 
       responseJson = response;
+      _checkResponse(responseJson);
     } on dio_.DioException catch (e) {
       // DioError handling.
       if (e.response != null) {

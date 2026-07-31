@@ -8,7 +8,8 @@ import '../../../config/constant.dart';
 import '../../../config/global.dart';
 import '../../../config/theme.dart';
 import '../../../router/app_routes.dart';
-import '../../../l10n/app_localizations.dart';
+import 'package:grofery_user/l10n/app_localizations.dart';
+import 'package:grofery_user/utils/widgets/blocked_user_dialog.dart';
 import '../../../utils/widgets/custom_button.dart';
 import '../../../utils/widgets/custom_image_container.dart';
 import '../../../utils/widgets/custom_toast.dart';
@@ -132,10 +133,15 @@ class _MobileOtpLoginPageState extends State<MobileOtpLoginPage>
                   },
                 );
               } else if (state is AuthFailed) {
-                ToastManager.show(
-                    context: context,
-                    message: state.error,
-                    type: ToastType.error);
+                final errorMsg = state.error.toLowerCase();
+                if (errorMsg.contains('block') || errorMsg.contains('inactive') || errorMsg.contains('deactivated')) {
+                  BlockedUserDialog.show(context, state.error);
+                } else {
+                  ToastManager.show(
+                      context: context,
+                      message: state.error,
+                      type: ToastType.error);
+                }
               }
             },
             builder: (context, authState) {

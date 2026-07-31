@@ -16,6 +16,8 @@ import 'package:grofery_user/l10n/app_localizations.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_bloc.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_event.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_state.dart';
+import 'package:grofery_user/screens/home_page/view/home_page.dart';
+import 'package:grofery_user/utils/widgets/blocked_user_dialog.dart';
 
 class OTPVerificationPage extends StatefulWidget {
   final String phoneNumber;
@@ -180,11 +182,16 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
           // GoRouter.of(context).pushReplacement(AppRoutes.splashScreen);
         } else if (state is AuthFailed) {
           if (!mounted) return;
-          ToastManager.show(
-            context: context,
-            message: state.error,
-            type: ToastType.error,
-          );
+          final errorMsg = state.error.toLowerCase();
+          if (errorMsg.contains('block') || errorMsg.contains('inactive') || errorMsg.contains('deactivated')) {
+            BlockedUserDialog.show(context, state.error);
+          } else {
+            ToastManager.show(
+              context: context,
+              message: state.error,
+              type: ToastType.error,
+            );
+          }
           // GoRouter.of(context).pop();
         } else if (state is OTPFailed) {
           if (!mounted) return;

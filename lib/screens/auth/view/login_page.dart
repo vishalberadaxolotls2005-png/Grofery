@@ -22,6 +22,9 @@ import 'package:grofery_user/screens/cart_page/bloc/get_user_cart/get_user_cart_
 import 'package:grofery_user/screens/auth/bloc/auth/auth_bloc.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_event.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_state.dart';
+import 'package:grofery_user/screens/auth/view/forgot_password.dart';
+import 'package:grofery_user/screens/home_page/view/home_page.dart';
+import 'package:grofery_user/utils/widgets/blocked_user_dialog.dart';
 import 'package:grofery_user/screens/auth/widgets/social_button_widget.dart';
 import 'package:grofery_user/l10n/app_localizations.dart';
 
@@ -181,10 +184,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       SyncCart()); // Use captured reference – no context needed
                 });
               } else if (state is AuthFailed) {
-                ToastManager.show(
-                    context: context,
-                    message: state.error,
-                    type: ToastType.error);
+                final errorMsg = state.error.toLowerCase();
+                if (errorMsg.contains('block') || errorMsg.contains('inactive') || errorMsg.contains('deactivated')) {
+                  BlockedUserDialog.show(context, state.error);
+                } else {
+                  ToastManager.show(
+                      context: context,
+                      message: state.error,
+                      type: ToastType.error);
+                }
               } else if (state is SocialAuthSuccess) {
                 if (state.newUser) {
                   GoRouter.of(context).push(AppRoutes.register, extra: {
