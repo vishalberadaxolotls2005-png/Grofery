@@ -333,6 +333,101 @@ class DeliveryTypeWidget extends StatelessWidget {
     );
   }
 
+  void _showRushClosedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(24.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.bolt,
+                  color: const Color(0xFFFFB300),
+                  size: 64.sp,
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Quick Delivery is closed',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  'Switched to Regular Delivery',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Fastest Option is only available from \n6am - 6pm',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 24.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                    ),
+                    child: Text(
+                      'Okay got it',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleDeliveryTypeSelection(
+      BuildContext context, DeliveryType deliveryType) {
+    if (deliveryType == DeliveryType.rush && isRushDeliveryDisabled) {
+      return;
+    }
+    if (deliveryType == DeliveryType.rush) {
+      final now = DateTime.now();
+      // Only available between 6 AM (hour 6) and 6 PM (hour 17, so >= 18 means closed)
+      if (now.hour < 6 || now.hour >= 18) {
+        _showRushClosedDialog(context);
+        onDeliveryTypeChanged(DeliveryType.regular);
+        return;
+      }
+    }
+    onDeliveryTypeChanged(deliveryType);
+  }
+
   Widget _buildDeliveryOption({
     required BuildContext context,
     required DeliveryType deliveryType,
@@ -349,15 +444,7 @@ class DeliveryTypeWidget extends StatelessWidget {
       opacity: isEnabled ? 1.0 : 0.5,
       child: InkWell(
         onTap: isEnabled
-            ? () {
-                // Always allow selecting regular
-                // Only allow rush if not disabled
-                if (deliveryType == DeliveryType.rush &&
-                    isRushDeliveryDisabled) {
-                  return;
-                }
-                onDeliveryTypeChanged(deliveryType);
-              }
+            ? () => _handleDeliveryTypeSelection(context, deliveryType)
             : null,
         borderRadius: BorderRadius.circular(12.r),
         child: Container(
@@ -409,7 +496,7 @@ class DeliveryTypeWidget extends StatelessWidget {
                     onChanged: isEnabled
                         ? (DeliveryType? value) {
                             if (value != null) {
-                              onDeliveryTypeChanged(value);
+                              _handleDeliveryTypeSelection(context, value);
                             }
                           }
                         : null,
