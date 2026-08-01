@@ -9,8 +9,10 @@ import 'package:grofery_user/screens/product_listing_page/model/product_listing_
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:grofery_user/bloc/user_cart_bloc/user_cart_bloc.dart';
 import 'package:grofery_user/bloc/user_cart_bloc/user_cart_event.dart';
+import 'package:grofery_user/bloc/user_cart_bloc/user_cart_state.dart';
 import 'package:grofery_user/model/user_cart_model/user_cart.dart';
 import 'package:grofery_user/model/user_cart_model/cart_sync_action.dart';
+import 'package:grofery_user/screens/product_detail_page/model/product_detail_model.dart';
 import 'package:grofery_user/utils/widgets/custom_shimmer.dart';
 import 'package:grofery_user/utils/widgets/custom_refresh_indicator.dart';
 import 'package:go_router/go_router.dart';
@@ -600,12 +602,25 @@ class _ProductListingPageState extends State<ProductListingPage> {
 
                             if (variant == null) return const SizedBox.shrink();
 
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                  left: 4.w, right: 8.w, top: 2.h, bottom: 2.h),
-                              child: CustomProductCard(
-                                productId: product.id,
-                                productImage: product.mainImage,
+                            return BlocBuilder<CartBloc, CartState>(
+                              builder: (context, cartState) {
+                                bool isAddedToCart = false;
+                                if (cartState is CartLoaded) {
+                                  isAddedToCart = cartState.items.any((item) =>
+                                      item.productId == product.id.toString());
+                                } else if (cartState is CartLoading) {
+                                  isAddedToCart = cartState.items.any((item) =>
+                                      item.productId == product.id.toString());
+                                }
+
+                                return Column(
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                          left: 4.w, right: 8.w, top: 2.h, bottom: 2.h),
+                                      child: CustomProductCard(
+                                        productId: product.id,
+                                        productImage: product.mainImage,
                                 productName: product.title,
                                 productSlug: product.slug,
                                 productPrice: variant.price.toString(),
@@ -674,8 +689,14 @@ class _ProductListingPageState extends State<ProductListingPage> {
                                 pricePerUnit: variant.pricePerUnit.isNotEmpty
                                     ? variant.pricePerUnit
                                     : product.pricePerUnit,
-                                measurementUnit: variant.measurementUnit,
-                              ),
+                                        measurementUnit: variant.measurementUnit,
+                                      ),
+                                    ),
+                                    if (isAddedToCart && widget.type == ProductListingType.category)
+                                      _buildYouMayAlsoLike(product, filteredProducts),
+                                  ],
+                                );
+                              },
                             );
                           },
                         )),
@@ -861,6 +882,140 @@ class _ProductListingPageState extends State<ProductListingPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildYouMayAlsoLike(ProductData currentProduct, List<ProductData> allProducts) {
+    final otherProducts = allProducts.where((p) => p.id != currentProduct.id).toList();
+    
+    // Sort products by similarity
+    otherProducts.sort((a, b) {
+      int scoreA = 0;
+      int scoreB = 0;
+
+      // Brand match
+      if (a.brandId != null && a.brandId == currentProduct.brandId) scoreA += 3;
+      if (b.brandId != null && b.brandId == currentProduct.brandId) scoreB += 3;
+
+      // Tag overlap
+      if (currentProduct.tags.isNotEmpty) {
+        scoreA += a.tags.where((tag) => currentProduct.tags.contains(tag)).length * 2;
+        scoreB += b.tags.where((tag) => currentProduct.tags.contains(tag)).length * 2;
+      }
+
+      // Indicator match
+      if (a.indicator.isNotEmpty && a.indicator == currentProduct.indicator) scoreA += 1;
+      if (b.indicator.isNotEmpty && b.indicator == currentProduct.indicator) scoreB += 1;
+
+      // Title word match
+      final currentWords = currentProduct.title.toLowerCase().split(RegExp(r'\s+')).toSet();
+      if (currentWords.isNotEmpty) {
+        scoreA += a.title.toLowerCase().split(RegExp(r'\s+')).where((w) => currentWords.contains(w)).length;
+        scoreB += b.title.toLowerCase().split(RegExp(r'\s+')).where((w) => currentWords.contains(w)).length;
+      }
+
+      return scoreB.compareTo(scoreA); // Descending
+    });
+
+    final suggestions = otherProducts.take(10).toList();
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFFF0F4FA), // similar to the light blue background in the image
+      padding: EdgeInsets.symmetric(vertical: 16.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Text(
+              "You may also like",
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF2B3445), // dark text color
+              ),
+            ),
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            height: 280.h, // Approx height for vertical cards
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 12.w),
+              itemCount: suggestions.length,
+              itemBuilder: (context, index) {
+                final prod = suggestions[index];
+                final variant = prod.variants.isNotEmpty ? prod.variants.first : null;
+                if (variant == null) return const SizedBox.shrink();
+
+                return Container(
+                  width: 150.w, // Fixed width for vertical card
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                  child: CustomProductCard(
+                    productId: prod.id,
+                    productImage: prod.mainImage,
+                    productName: prod.title,
+                    productSlug: prod.slug,
+                    productPrice: variant.price.toString(),
+                    productTags: prod.tags,
+                    productTag: prod.tag,
+                    productRemark: prod.remark,
+                    specialPrice: variant.specialPrice.toString(),
+                    estimatedDeliveryTime: prod.estimatedDeliveryTime,
+                    ratings: prod.ratings.toDouble(),
+                    ratingCount: prod.ratingCount,
+                    quickDeliveryAvailable: prod.quickDeliveryAvailable,
+                    onAddToCart: (qty) {
+                      context.read<CartBloc>().add(
+                            AddToCart(
+                              context: context,
+                              item: UserCart(
+                                productId: prod.id.toString(),
+                                variantId: variant.id.toString(),
+                                variantName: variant.title,
+                                vendorId: variant.storeId.toString(),
+                                name: prod.title,
+                                image: prod.mainImage,
+                                price: variant.getEffectivePrice(qty),
+                                originalPrice: variant.price.toDouble(),
+                                quantity: qty,
+                                minQty: prod.minimumOrderQuantity,
+                                maxQty: prod.totalAllowedQuantity,
+                                isOutOfStock: variant.stock <= 0,
+                                isSynced: false,
+                                updatedAt: DateTime.now(),
+                                syncAction: CartSyncAction.add,
+                                tieredPricing: variant.tieredPricing,
+                              ),
+                            ),
+                          );
+                    },
+                    isStoreOpen: prod.storeStatus?.isOpen ?? true,
+                    isWishListed: prod.favorite != null && prod.favorite!.isNotEmpty,
+                    productVariantId: variant.id,
+                    storeId: variant.storeId,
+                    wishlistItemId: (prod.favorite != null && prod.favorite!.isNotEmpty) ? prod.favorite!.first.id ?? 0 : 0,
+                    totalStocks: variant.stock,
+                    imageFit: prod.imageFit,
+                    quantityStepSize: prod.quantityStepSize,
+                    minQty: prod.minimumOrderQuantity,
+                    totalAllowedQuantity: prod.totalAllowedQuantity,
+                    tieredPricing: variant.tieredPricing,
+                    indicator: prod.indicator,
+                    useHorizontalLayout: false, // VERTICAL LAYOUT!
+                    mrp: variant.mrp.toString(),
+                    mrpStatus: variant.mrpStatus,
+                    pricePerUnit: variant.pricePerUnit.isNotEmpty ? variant.pricePerUnit : prod.pricePerUnit,
+                    measurementUnit: variant.measurementUnit,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
