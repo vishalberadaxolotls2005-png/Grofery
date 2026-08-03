@@ -372,7 +372,7 @@ class DeliveryTypeWidget extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'Fastest Option is only available from \n6am - 6pm',
+                  'Fastest Option is only available from \n4am - 6pm',
                   style: TextStyle(
                     fontSize: 12.sp,
                     color: Colors.grey[600],
@@ -418,8 +418,8 @@ class DeliveryTypeWidget extends StatelessWidget {
     }
     if (deliveryType == DeliveryType.rush) {
       final now = DateTime.now();
-      // Only available between 6 AM (hour 6) and 6 PM (hour 17, so >= 18 means closed)
-      if (now.hour < 6 || now.hour >= 18) {
+      // Only available between 4 AM (hour 4) and 6 PM (hour 17, so >= 18 means closed)
+      if (now.hour < 4 || now.hour >= 18) {
         _showRushClosedDialog(context);
         onDeliveryTypeChanged(DeliveryType.regular);
         return;
