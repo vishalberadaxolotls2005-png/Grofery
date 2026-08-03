@@ -4,12 +4,15 @@ import 'package:grofery_user/config/theme.dart';
 class BlockedUserDialog {
   static void show(BuildContext context, String message) {
     String cleanMessage = message;
-    cleanMessage = cleanMessage.replaceAll(RegExp(r'API Error \(\d+\):\s*', caseSensitive: false), '');
-    cleanMessage = cleanMessage.replaceAll(RegExp(r'Exception:\s*', caseSensitive: false), '');
+    cleanMessage = cleanMessage.replaceAll(
+        RegExp(r'API Error \(\d+\):\s*', caseSensitive: false), '');
+    cleanMessage = cleanMessage.replaceAll(
+        RegExp(r'Exception:\s*', caseSensitive: false), '');
     cleanMessage = cleanMessage.trim();
-    
+
     showDialog(
       context: context,
+
       barrierDismissible: false, // Force the user to interact with the button
       builder: (BuildContext context) {
         return Dialog(
@@ -55,7 +58,10 @@ class BlockedUserDialog {
                     ),
                     child: const Text(
                       "OK",
-                      style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),

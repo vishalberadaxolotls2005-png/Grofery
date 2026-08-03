@@ -31,6 +31,7 @@ import 'package:grofery_user/model/user_cart_model/cart_sync_action.dart';
 import 'package:grofery_user/services/recent_product/recent_product_service.dart';
 import 'package:grofery_user/services/user_cart/cart_validation.dart';
 import 'package:grofery_user/utils/widgets/custom_toast.dart';
+import 'package:grofery_user/utils/widgets/notify_button.dart';
 import '../bloc/product_detail_bloc/product_detail_event.dart';
 import '../bloc/product_detail_bloc/product_detail_state.dart';
 import '../bloc/product_faq_bloc/product_faq_bloc.dart';
@@ -1401,41 +1402,48 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              height: 45,
-                              width: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: AppTheme.primaryColor,
-                                  width: 1.2,
-                                ),
-                              ),
-                              child: Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(10.r),
-                                  onTap: () {
-                                    ToastManager.show(
-                                      context: context,
-                                      message: 'You will be notified when product is available',
-                                      type: ToastType.authGuard,
-                                    );
-                                  },
-                                  child: Center(
-                                    child: Text(
-                                      'Notify',
-                                      style: TextStyle(
-                                        color: AppTheme.primaryColor,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
+                            NotifyButton(
+                              builder: (isNotified, onTap) {
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  height: 45,
+                                  width: 120,
+                                  decoration: BoxDecoration(
+                                    color: isNotified ? Colors.green : Colors.white,
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    border: Border.all(
+                                      color: isNotified ? Colors.green : AppTheme.primaryColor,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      onTap: onTap,
+                                      child: Center(
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            if (isNotified) ...[
+                                              const Icon(TablerIcons.check, color: Colors.white, size: 18),
+                                              const SizedBox(width: 6),
+                                            ],
+                                            Text(
+                                              isNotified ? 'Notified' : 'Notify',
+                                              style: TextStyle(
+                                                color: isNotified ? Colors.white : AppTheme.primaryColor,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 2),
                             Text(

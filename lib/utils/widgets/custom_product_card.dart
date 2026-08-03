@@ -27,6 +27,7 @@ import '../../screens/wishlist_page/bloc/wishlist_product_bloc/wishlist_product_
 import 'package:flutter/services.dart';
 import '../../services/user_cart/cart_validation.dart';
 import 'custom_toast.dart';
+import 'notify_button.dart';
 
 class CustomProductCard extends StatelessWidget {
   final int productId;
@@ -426,49 +427,47 @@ class CustomProductCard extends StatelessWidget {
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        width: 70.w,
-                        height: 30.h,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6.r),
-                          border: Border.all(
-                            color: AppTheme.primaryColor,
-                            width: 1.5.w,
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(5.r),
-                            onTap: () {
-                              ToastManager.show(
-                                context: context,
-                                message: 'You will be notified when product is available',
-                                type: ToastType.authGuard,
-                              );
-                            },
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(TablerIcons.bell,
-                                      size: 14.sp, color: AppTheme.primaryColor),
-                                  SizedBox(width: 2.w),
-                                  Text(
-                                    "Notify",
-                                    style: TextStyle(
-                                      color: AppTheme.primaryColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11.sp,
-                                    ),
-                                  ),
-                                ],
+                      NotifyButton(
+                        builder: (isNotified, onTap) {
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: 70.w,
+                            height: 30.h,
+                            decoration: BoxDecoration(
+                              color: isNotified ? Colors.green : Colors.white,
+                              borderRadius: BorderRadius.circular(6.r),
+                              border: Border.all(
+                                color: isNotified ? Colors.green : AppTheme.primaryColor,
+                                width: 1.5.w,
                               ),
                             ),
-                          ),
-                        ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(5.r),
+                                onTap: onTap,
+                                child: Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(isNotified ? TablerIcons.check : TablerIcons.bell,
+                                          size: 14.sp, color: isNotified ? Colors.white : AppTheme.primaryColor),
+                                      SizedBox(width: 2.w),
+                                      Text(
+                                        isNotified ? "Notified" : "Notify",
+                                        style: TextStyle(
+                                          color: isNotified ? Colors.white : AppTheme.primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(height: 2.h),
                       Text(
@@ -1163,53 +1162,51 @@ class CustomProductCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: double.infinity,
-              height: 34.h,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(
-                  color: const Color(0xFFE54A50),
-                  width: 1.0,
-                ),
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    ToastManager.show(
-                      context: context,
-                      message: 'You will be notified when product is available',
-                      type: ToastType.authGuard,
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Text(
-                        "NOTIFY",
-                        style: TextStyle(
-                          color: const Color(0xFFE54A50),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13.sp,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      Positioned(
-                        right: 12.w,
-                        child: Icon(
-                          TablerIcons.bell,
-                          color: const Color(0xFFE54A50),
-                          size: 16.sp,
-                        ),
-                      )
-                    ],
+            NotifyButton(
+              builder: (isNotified, onTap) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: double.infinity,
+                  height: 34.h,
+                  decoration: BoxDecoration(
+                    color: isNotified ? Colors.green : const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(
+                      color: isNotified ? Colors.green : const Color(0xFFE54A50),
+                      width: 1.0,
+                    ),
                   ),
-                ),
-              ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onTap,
+                      borderRadius: BorderRadius.circular(10.r),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Text(
+                            isNotified ? "NOTIFIED" : "NOTIFY",
+                            style: TextStyle(
+                              color: isNotified ? Colors.white : const Color(0xFFE54A50),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13.sp,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Positioned(
+                            right: 12.w,
+                            child: Icon(
+                              isNotified ? TablerIcons.check : TablerIcons.bell,
+                              color: isNotified ? Colors.white : const Color(0xFFE54A50),
+                              size: 16.sp,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
             SizedBox(height: 2.h),
             Text(
@@ -1621,41 +1618,48 @@ class CustomProductCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 95.w,
-            height: 34.h,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(
-                color: const Color(0xFFE54A50),
-                width: 1.2,
-              ),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(8.r),
-                onTap: () {
-                  ToastManager.show(
-                    context: context,
-                    message: 'You will be notified when product is available',
-                    type: ToastType.authGuard,
-                  );
-                },
-                child: Center(
-                  child: Text(
-                    'Notify',
-                    style: TextStyle(
-                      color: const Color(0xFFE54A50),
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
+          NotifyButton(
+            builder: (isNotified, onTap) {
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 95.w,
+                height: 34.h,
+                decoration: BoxDecoration(
+                  color: isNotified ? Colors.green : Colors.white,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: isNotified ? Colors.green : const Color(0xFFE54A50),
+                    width: 1.2,
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8.r),
+                    onTap: onTap,
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (isNotified) ...[
+                            Icon(TablerIcons.check, color: Colors.white, size: 16.sp),
+                            SizedBox(width: 4.w),
+                          ],
+                          Text(
+                            isNotified ? 'Notified' : 'Notify',
+                            style: TextStyle(
+                              color: isNotified ? Colors.white : const Color(0xFFE54A50),
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           SizedBox(height: 2.h),
           Text(
