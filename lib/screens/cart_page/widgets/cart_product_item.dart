@@ -194,8 +194,12 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                 ),
                 if (variant?.title != null &&
                     product?.name != null &&
-                    variant!.title!.replaceAll(RegExp(r'\s+'), '').toLowerCase() !=
-                        product!.name!.replaceAll(RegExp(r'\s+'), '').toLowerCase())
+                    variant!.title!
+                            .replaceAll(RegExp(r'\s+'), '')
+                            .toLowerCase() !=
+                        product!.name!
+                            .replaceAll(RegExp(r'\s+'), '')
+                            .toLowerCase())
                   Text(
                     variant.title!,
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey),
@@ -214,6 +218,13 @@ class _CartItemWidgetState extends State<CartItemWidget> {
                       ),
                     ),
                   ],
+                ),
+                Text(
+                  "(including all tax)",
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.grey,
+                  ),
                 ),
               ],
             ),
