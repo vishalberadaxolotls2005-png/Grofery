@@ -62,6 +62,10 @@ import '../bloc/special_offer/special_offer_event.dart';
 import '../bloc/special_offer/special_offer_state.dart';
 import 'package:grofery_user/router/app_routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:grofery_user/screens/my_orders/repo/order_repo.dart';
+import 'package:grofery_user/screens/home_page/widgets/home_rating_bottom_sheet.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -136,9 +140,12 @@ class _HomePageState extends State<HomePage>
           _hasShownGstPopup = true;
           _showGstPopup();
         }
+
+        _checkForUnratedDelivery();
       }
     });
   }
+
 
   void _showHolidayPopup(String message) {
     if (_isHolidayPopupShowing || !mounted) return;
@@ -249,6 +256,40 @@ class _HomePageState extends State<HomePage>
     if (systemSettings != null && systemSettings.isTodayHoliday) {
       _hasShownHolidayPopup = true;
       _showHolidayPopup(systemSettings.vacationMessage);
+    }
+  }
+
+  Future<void> _checkForUnratedDelivery() async {
+    try {
+      final repo = OrderRepository();
+      final response = await repo.fetchMyOrderList(perPage: 1, page: 1);
+      if (response['success'] == true && response['data'] != null) {
+        final List<dynamic> ordersList = response['data']['data'] ?? [];
+        if (ordersList.isNotEmpty) {
+          final latestOrder = ordersList.first;
+          final String status = latestOrder['status'] ?? '';
+          final bool isDeliveryFeedbackGiven = latestOrder['is_delivery_feedback_given'] == true || latestOrder['is_delivery_feedback_given'] == 1;
+          final int orderId = latestOrder['id'];
+          
+          if (status.toLowerCase() == 'delivered' && !isDeliveryFeedbackGiven) {
+            final prefs = await SharedPreferences.getInstance();
+            final key = 'prompted_feedback_order_$orderId';
+            if (prefs.getBool(key) != true) {
+              await prefs.setBool(key, true);
+              if (mounted) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => HomeRatingBottomSheet(orderData: latestOrder),
+                );
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      log('Error checking for unrated delivery: $e');
     }
   }
 
