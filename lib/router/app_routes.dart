@@ -38,6 +38,7 @@ import 'package:grofery_user/screens/brand_list_page/view/brands_list_page.dart'
 import 'package:grofery_user/screens/dashboard/view/dashboard.dart';
 import 'package:grofery_user/screens/my_orders/view/my_orders_page.dart';
 import 'package:grofery_user/screens/my_orders/view/order_success_page.dart';
+import 'package:grofery_user/screens/my_orders/view/order_rejected_page.dart';
 import 'package:grofery_user/screens/policies/view/app_policies_page.dart';
 import 'package:grofery_user/screens/product_detail_page/view/product_detail_page.dart';
 import 'package:grofery_user/screens/address_list_page/view/address_list_page.dart';
@@ -83,6 +84,7 @@ class AppRoutes {
   static const String addressList = '/address-list';
   static const String paymentOptions = '/payment-options';
   static const String orderSuccess = '/order-success';
+  static const String orderRejected = '/order-rejected';
   static const String userProfile = '/user-profile';
   static const String promoCode = '/promo-code';
   static const String myOrders = '/my-orders';
@@ -398,6 +400,16 @@ class MyAppRoute {
             pageBuilder: (context, state) {
               final extra = state.extra as Map<String, dynamic>? ?? {};
               return platformPage(OrderSuccessPage(
+                  address: extra['address'].toString(),
+                  addressType: extra['addressType'].toString(),
+                  orderSlug: extra['orderSlug'].toString()));
+            }),
+        GoRoute(
+            name: 'order-rejected',
+            path: AppRoutes.orderRejected,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return platformPage(OrderRejectedPage(
                   address: extra['address'].toString(),
                   addressType: extra['addressType'].toString(),
                   orderSlug: extra['orderSlug'].toString()));

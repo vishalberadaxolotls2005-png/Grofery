@@ -13,12 +13,13 @@ class CreateOrderProgress extends CreateOrderState {}
 class CreateOrderSuccess extends CreateOrderState {
   final String message;
   final String orderSlug;
+  final String orderStatus;
   final String? paymentUrl;
 
-  CreateOrderSuccess({required this.message, required this.orderSlug, required this.paymentUrl,});
+  CreateOrderSuccess({required this.message, required this.orderSlug, required this.orderStatus, required this.paymentUrl,});
   @override
   // TODO: implement props
-  List<Object?> get props => [message, orderSlug, paymentUrl];
+  List<Object?> get props => [message, orderSlug, orderStatus, paymentUrl];
 }
 
 class CreateOrderFailure extends CreateOrderState {

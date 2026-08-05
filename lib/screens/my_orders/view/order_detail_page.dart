@@ -1,10 +1,12 @@
 import 'dart:developer';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:grofery_user/config/constant.dart';
 import 'package:grofery_user/router/app_routes.dart';
 import 'package:grofery_user/screens/cart_page/widgets/bill_summary_widget.dart';
@@ -39,15 +41,36 @@ class OrderDetailPage extends StatefulWidget {
 }
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
+  bool _hasShownRejectScreen = false;
+  bool _isShowingRejectScreen = false;
+  StreamSubscription<RemoteMessage>? _fcmSubscription;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     apiCall();
+    _fcmSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (mounted) {
+        apiCall(showLoader: false); // Auto-refresh when notification is received
+      }
+    });
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted) {
+        apiCall(showLoader: false);
+      }
+    });
     super.initState();
   }
 
-  Future<void> apiCall() async {
-    context.read<OrderDetailBloc>().add(FetchOrderDetail(orderSlug: widget.orderSlug));
+  @override
+  void dispose() {
+    _fcmSubscription?.cancel();
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> apiCall({bool showLoader = true}) async {
+    context.read<OrderDetailBloc>().add(FetchOrderDetail(orderSlug: widget.orderSlug, showLoader: showLoader));
   }
 
   Future<void> _launchPdf(String pdfUrl) async {
@@ -75,6 +98,61 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  Widget _buildRejectedScreen(BuildContext context, String address, String addressType) {
+    return Container(
+      color: Colors.white,
+      width: double.infinity,
+      alignment: Alignment.center,
+      child: Material(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              TablerIcons.circle_x_filled,
+              color: Colors.red,
+              size: 150.r,
+            ),
+            SizedBox(height: 10.h,),
+            Text(
+              'Order Rejected',
+              style: TextStyle(
+                  fontSize: 18.sp
+              ),
+            ),
+            SizedBox(height: 8.h,),
+            if (addressType.isNotEmpty) Padding(
+              padding:  EdgeInsets.symmetric(
+                  horizontal: 25.w,
+                  vertical: 00
+              ),
+              child: Text(
+                'Delivery to ${addressType.toUpperCase()}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16.sp
+                ),
+              ),
+            ),
+            Padding(
+              padding:  EdgeInsets.symmetric(
+                  horizontal: 25.w,
+                vertical: 0.0
+              ),
+              child: Text(
+                address,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16.sp
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -95,6 +173,28 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               );
             }
           }
+        ),
+        BlocListener<OrderDetailBloc, OrderDetailState>(
+          listener: (context, state) {
+            if (state is OrderDetailLoaded) {
+              final orderData = state.cartData.first.data;
+              if (orderData != null && (orderData.status?.toLowerCase() == 'rejected' || orderData.status?.toLowerCase() == 'cancelled')) {
+                if (!_hasShownRejectScreen) {
+                  setState(() {
+                    _isShowingRejectScreen = true;
+                    _hasShownRejectScreen = true;
+                  });
+                  Future.delayed(const Duration(seconds: 8), () {
+                    if (mounted) {
+                      setState(() {
+                        _isShowingRejectScreen = false;
+                      });
+                    }
+                  });
+                }
+              }
+            }
+          }
         )
       ],
       child: BlocConsumer<DownloadInvoiceBloc, DownloadInvoiceState>(
@@ -113,6 +213,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           }
         },
         builder: (context, state) {
+          if (_isShowingRejectScreen) {
+            final orderState = context.read<OrderDetailBloc>().state;
+            final orderData = orderState is OrderDetailLoaded ? orderState.cartData.first.data : null;
+            return _buildRejectedScreen(
+              context,
+              orderData?.shippingAddress1 ?? '',
+              orderData?.shippingAddressType ?? ''
+            );
+          }
+
           return Stack(
             children: [
               Builder(

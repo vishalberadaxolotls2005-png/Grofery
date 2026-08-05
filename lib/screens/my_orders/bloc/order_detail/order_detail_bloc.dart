@@ -14,7 +14,9 @@ class OrderDetailBloc extends Bloc<OrderDetailEvent, OrderDetailState> {
   final OrderRepository repository = OrderRepository();
 
   Future<void> _onFetchUserCart(FetchOrderDetail event, Emitter<OrderDetailState> emit) async {
-    emit(OrderDetailLoading());
+    if (event.showLoader) {
+      emit(OrderDetailLoading());
+    }
     try{
       final orderDetailData = await repository.getOrderDetail(
         orderSlug: event.orderSlug,

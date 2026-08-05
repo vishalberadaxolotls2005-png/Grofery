@@ -552,14 +552,25 @@ class _CartPageState extends State<CartPage> {
                               ? formatAddressFromModel(selectedAddress!)
                               : null;
                           GoRouter.of(context).pop();
-                          GoRouter.of(context).push(
-                            AppRoutes.orderSuccess,
-                            extra: {
-                              'address': displayAddress,
-                              'addressType': selectedAddress!.addressType,
-                              'orderSlug': state.orderSlug,
-                            },
-                          );
+                          if (state.orderStatus.toLowerCase() == 'rejected' || state.orderStatus.toLowerCase() == 'cancelled') {
+                            GoRouter.of(context).push(
+                              AppRoutes.orderRejected,
+                              extra: {
+                                'address': displayAddress,
+                                'addressType': selectedAddress!.addressType,
+                                'orderSlug': state.orderSlug,
+                              },
+                            );
+                          } else {
+                            GoRouter.of(context).push(
+                              AppRoutes.orderSuccess,
+                              extra: {
+                                'address': displayAddress,
+                                'addressType': selectedAddress!.addressType,
+                                'orderSlug': state.orderSlug,
+                              },
+                            );
+                          }
                         }
                       } else if (state is CreateOrderFailure) {
                         setState(() {

@@ -48,6 +48,7 @@ class CreateOrderBloc extends Bloc<CreateOrderEvent, CreateOrderState> {
         emit(CreateOrderSuccess(
             message: response['message'],
             orderSlug: response['data']['slug'],
+            orderStatus: response['data']['status']?.toString() ?? '',
             paymentUrl: event.paymentType == 'flutterwave'
                 ? response['data']['payment_response']['link']
                 : ''));

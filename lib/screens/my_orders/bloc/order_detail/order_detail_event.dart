@@ -8,12 +8,11 @@ abstract class OrderDetailEvent extends Equatable {
 
 class FetchOrderDetail extends OrderDetailEvent {
   final String orderSlug;
+  final bool showLoader;
 
-  FetchOrderDetail({
-    required this.orderSlug,
-  });
+  FetchOrderDetail({required this.orderSlug, this.showLoader = true});
 
   @override
   // TODO: implement props
-  List<Object?> get props => [orderSlug];
+  List<Object?> get props => [orderSlug, showLoader];
 }
