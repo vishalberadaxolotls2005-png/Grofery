@@ -367,7 +367,7 @@ class BillSummaryWidget extends StatelessWidget {
               ],
             ),
 
-            if (isFromOrderDetail!) ...[
+            if (isFromOrderDetail! && downloadInvoice != null) ...[
               const SizedBox(height: 10),
               Divider(),
               GestureDetector(
