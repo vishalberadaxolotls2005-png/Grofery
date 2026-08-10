@@ -427,6 +427,7 @@ class MyAppRoute {
             return platformPage(PromoCodePage(
               cartAmount: extra['cartAmount']?.toDouble(),
               deliveryCharges: extra['deliveryCharges']?.toDouble(),
+              hasEdibleOil: extra['hasEdibleOil'] as bool? ?? false,
             ));
           },
         ),

@@ -242,6 +242,8 @@ class CartItems {
 
 class Product {
   int? id;
+  int? categoryId;
+  String? category;
   String? name;
   String? slug;
   int? minimumOrderQuantity;
@@ -257,6 +259,8 @@ class Product {
 
   Product(
       {this.id,
+        this.categoryId,
+        this.category,
         this.name,
         this.slug,
         this.minimumOrderQuantity,
@@ -272,6 +276,8 @@ class Product {
 
   Product.fromJson(Map<String, dynamic> json) {
     id = json['id'] != null ? int.tryParse(json['id'].toString()) : null;
+    categoryId = json['category_id'] != null ? int.tryParse(json['category_id'].toString()) : null;
+    category = json['category'];
     name = json['name'];
     slug = json['slug'];
     minimumOrderQuantity = json['minimum_order_quantity'] != null ? int.tryParse(json['minimum_order_quantity'].toString()) : null;
@@ -291,6 +297,8 @@ class Product {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
+    data['category_id'] = categoryId;
+    data['category'] = category;
     data['name'] = name;
     data['slug'] = slug;
     data['minimum_order_quantity'] = minimumOrderQuantity;

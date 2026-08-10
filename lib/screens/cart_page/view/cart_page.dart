@@ -23,6 +23,8 @@ import 'package:grofery_user/screens/cart_page/widgets/bill_summary_widget.dart'
 import 'package:grofery_user/screens/cart_page/widgets/delivery_address_widget.dart';
 import 'package:grofery_user/screens/cart_page/widgets/address_selection_bottom_sheet.dart';
 import 'package:grofery_user/screens/product_detail_page/widgets/product_detail_shimmer.dart';
+import 'package:grofery_user/utils/widgets/no_internet_connection.dart';
+import 'package:grofery_user/utils/widgets/promo_error_dialog.dart';
 import 'package:grofery_user/utils/widgets/custom_button.dart';
 import 'package:grofery_user/utils/widgets/custom_circular_progress_indicator.dart';
 import 'package:grofery_user/utils/widgets/custom_refresh_indicator.dart';
@@ -261,7 +263,21 @@ class _CartPageState extends State<CartPage> {
       // Sync promoCode with backend's response so it doesn't get lost on page reload
       promoCode = billSummaryData?.promoCode;
       if (promoCode != null && promoCode!.isNotEmpty) {
-        _promoController.text = promoCode!;
+        if (_hasEdibleOilProduct(cartData)) {
+          // If a promo code was already applied but an edible oil was added,
+          // remove the promo code and show the error dialog
+          context.read<PromoCodeBloc>().add(RemovePromoCode());
+          _promoController.clear();
+          promoCode = null;
+          
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (context.mounted) {
+              PromoErrorDialog.show(context);
+            }
+          });
+        } else {
+          _promoController.text = promoCode!;
+        }
       } else {
         _promoController.clear();
       }
@@ -1121,6 +1137,24 @@ class _CartPageState extends State<CartPage> {
       return attachment == null;
     }).toList();
   }
+  bool _hasEdibleOilProduct(List<GetCartModel> cartData) {
+    if (cartData.isEmpty || cartData.first.data?.items == null) return false;
+    for (var item in cartData.first.data!.items!) {
+      final category = item.product?.category?.toLowerCase() ?? '';
+      if (category.contains('edible') || category.contains('oil')) {
+        return true;
+      }
+      
+      // Fallback in case category field is null in the cart API response
+      if (category.isEmpty) {
+        final slug = item.product?.slug?.toLowerCase() ?? '';
+        if (slug.contains('edible') || slug.contains('oil')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   Future<bool> _showClearCartConfirmDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
@@ -1208,6 +1242,7 @@ class _CartPageState extends State<CartPage> {
                             .first.data?.paymentSummary?.totalDeliveryCharges
                             ?.toDouble() ??
                         0.0,
+                    'hasEdibleOil': _hasEdibleOilProduct(stateData),
                   });
                   if (result != null &&
                       result is String &&
@@ -1317,6 +1352,11 @@ class _CartPageState extends State<CartPage> {
                             : () {
                                 final code = _promoController.text.trim();
                                 if (code.isNotEmpty) {
+                                  if (_hasEdibleOilProduct(stateData)) {
+                                    PromoErrorDialog.show(context);
+                                    _promoController.clear();
+                                    return;
+                                  }
                                   context
                                       .read<ValidatePromoCodeBloc>()
                                       .selectedPromoCode = code;
@@ -1421,6 +1461,10 @@ class _CartPageState extends State<CartPage> {
                               onPressed: isApplied
                                   ? null
                                   : () {
+                                      if (_hasEdibleOilProduct(stateData)) {
+                                        PromoErrorDialog.show(context);
+                                        return;
+                                      }
                                       _promoController.text = coupon.code ?? '';
                                       context
                                               .read<ValidatePromoCodeBloc>()

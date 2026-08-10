@@ -5,6 +5,7 @@ import 'package:grofery_user/screens/cart_page/bloc/promo_code/promo_code_event.
 import 'package:grofery_user/screens/cart_page/bloc/promo_code/promo_code_state.dart';
 import 'package:grofery_user/utils/widgets/custom_circular_progress_indicator.dart';
 import 'package:grofery_user/utils/widgets/custom_scaffold.dart';
+import 'package:grofery_user/utils/widgets/promo_error_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/widgets/custom_toast.dart';
 import '../bloc/promo_code/promo_code_bloc.dart';
@@ -14,7 +15,8 @@ import '../widgets/coupon_card.dart';
 class PromoCodePage extends StatefulWidget {
   final double? cartAmount;
   final double? deliveryCharges;
-  const PromoCodePage({super.key, this.cartAmount, this.deliveryCharges});
+  final bool? hasEdibleOil;
+  const PromoCodePage({super.key, this.cartAmount, this.deliveryCharges, this.hasEdibleOil = false});
 
   @override
   State<PromoCodePage> createState() => _PromoCodePageState();
@@ -101,6 +103,10 @@ class _PromoCodePageState extends State<PromoCodePage> {
                                     coupon.code,
                             isLoading: isThisCouponLoading,
                             onTap: () {
+                              if (widget.hasEdibleOil == true) {
+                                PromoErrorDialog.show(context);
+                                return;
+                              }
                               final code = coupon.code ?? '';
                               if (code.isNotEmpty) {
                                 // Store selected code temporarily in bloc validtor
