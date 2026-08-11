@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grofery_user/config/api_routes.dart';
+import 'package:grofery_user/config/constant.dart';
 import '../repo/target_gift_history_repo.dart';
 import '../model/target_gift_history_model.dart';
 import 'target_gift_history_event.dart';
@@ -33,9 +35,30 @@ class TargetGiftHistoryBloc
   ) async {
     emit(TargetGiftClaiming());
     try {
+      int? addressIdToUse = event.addressId;
+      
+      if (addressIdToUse == null) {
+        try {
+          final addressRes = await AppConstant.apiBaseHelper.getAPICall(ApiRoutes.getAddressesApi, {});
+          if (addressRes.data != null && addressRes.data['data'] != null) {
+             final dataList = addressRes.data['data']['data'] as List?;
+             if (dataList != null && dataList.isNotEmpty) {
+               addressIdToUse = dataList.first['id'] as int?;
+             }
+          }
+        } catch (e) {
+          // Ignore address fetch error and proceed
+        }
+        
+        if (addressIdToUse == null) {
+           emit(const TargetGiftClaimFailed('Please add a delivery address first.'));
+           return;
+        }
+      }
+
       final res = await repository.claimTargetGift(
         targetId: event.targetId,
-        addressId: event.addressId,
+        addressId: addressIdToUse,
       );
       final msg = res['message']?.toString() ??
           'Gift claimed successfully! Our admin team will dispatch it soon.';
