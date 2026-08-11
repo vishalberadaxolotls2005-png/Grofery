@@ -5,6 +5,7 @@ import 'package:heroicons_flutter/heroicons_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:grofery_user/config/constant.dart';
+import 'business_details_bottom_sheet.dart';
 import 'package:grofery_user/router/app_routes.dart';
 import 'package:grofery_user/screens/account_page/widgets/account_page_app_bar.dart';
 import 'package:grofery_user/screens/auth/bloc/auth/auth_bloc.dart';
@@ -456,9 +457,18 @@ class _AccountPageState extends State<AccountPage> {
                               SettingsTile(
                                 title: l10n?.deleteAccount ?? "Delete Account",
                                 icon: TablerIcons.trash,
-                                isLast: true,
+                                isLast: false,
                                 onTap: () {
                                   _showDeleteAccountConfirmationDialog(context);
+                                },
+                              ),
+                              customDivider(),
+                              SettingsTile(
+                                title: "Business Details (GST)",
+                                icon: TablerIcons.briefcase,
+                                isLast: true,
+                                onTap: () {
+                                  BusinessDetailsBottomSheet.show(context);
                                 },
                               ),
                             ],
