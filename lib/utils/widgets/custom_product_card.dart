@@ -209,29 +209,7 @@ class CustomProductCard extends StatelessWidget {
                                       locale: AppConstant.defaultLocalCurrency,
                                       context: context),
                                   if (formattedPricePerUnit != null)
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 2.h),
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 9.sp,
-                                            color: Colors.green,
-                                          ),
-                                          children: [
-                                            const TextSpan(
-                                              text: 'Best Price',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            TextSpan(
-                                              text: formattedPricePerUnit,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                    _buildPricePerUnitWidget(formattedPricePerUnit, 9.sp),
                                   SizedBox(height: 4.h),
                                   _buildQuickDeliveryBadge(
                                       quickDeliveryAvailable),
@@ -823,6 +801,44 @@ class CustomProductCard extends StatelessWidget {
 
   double get _displayMrp => double.tryParse(mrp ?? '') ?? 0.0;
 
+  bool get _isEdibleOil {
+    final name = productName.toLowerCase();
+    final slug = productSlug.toLowerCase();
+    return name.contains(' oil') || name.endsWith('oil') || slug.contains('-oil-') || slug.endsWith('-oil');
+  }
+
+  Widget _buildPricePerUnitWidget(String? formattedPricePerUnit, double fontSize) {
+    if (formattedPricePerUnit == null) return const SizedBox.shrink();
+    if (_isEdibleOil) {
+      return Text(
+        formattedPricePerUnit,
+        style: TextStyle(
+          fontSize: fontSize,
+          color: Colors.grey.shade600,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: fontSize,
+          color: Colors.green,
+        ),
+        children: [
+          const TextSpan(
+            text: 'Best Price ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: formattedPricePerUnit,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
   String? get _formattedPricePerUnit {
     final String? val = pricePerUnit?.trim();
     if (val == null ||
@@ -832,14 +848,19 @@ class CustomProductCard extends StatelessWidget {
         val == '0.00') return null;
     final double? parsed = double.tryParse(val);
     if (parsed != null && parsed > 0) {
+      if (_isEdibleOil) {
+        return "at ${AppConstant.currency}${formatPrice(parsed)}/$_displayMeasurementUnit";
+      }
       return "${AppConstant.currency}${formatPrice(parsed)} per $_displayMeasurementUnit";
     }
     if (val.contains('/')) {
       final replaced = val.replaceAll('/', ' per ');
       if (replaced.startsWith(AppConstant.currency) ||
           replaced.startsWith('₹')) {
+        if (_isEdibleOil) return "at ${replaced.replaceAll(' per ', '/')}";
         return replaced;
       }
+      if (_isEdibleOil) return "at ${AppConstant.currency}${replaced.replaceAll(' per ', '/')}";
       return "${AppConstant.currency}$replaced";
     }
     return val;
@@ -1063,29 +1084,7 @@ class CustomProductCard extends StatelessWidget {
                                 ],
                               ),
                               if (formattedPricePerUnit != null)
-                                Padding(
-                                  padding: EdgeInsets.only(top: 1.h),
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                        fontSize: 9.sp,
-                                        color: Colors.green,
-                                      ),
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Best Price ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                          text: formattedPricePerUnit,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                _buildPricePerUnitWidget(formattedPricePerUnit, 9.sp),
                               if (productTag != null && productTag!.isNotEmpty) ...[
                                 SizedBox(height: 3.h),
                                 Text(
@@ -1515,60 +1514,42 @@ class CustomProductCard extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.baseline,
-                                      textBaseline: TextBaseline.alphabetic,
-                                      children: [
-                                        Text(
-                                          "₹${formatPrice(totalPrice)}",
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        SizedBox(width: 4.w),
-                                        if (mrpStatus == 1 &&
-                                            totalOriginalPrice > 0)
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.baseline,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        children: [
                                           Text(
-                                            "₹${formatPrice(totalOriginalPrice)}",
+                                            "₹${formatPrice(totalPrice)}",
                                             style: TextStyle(
-                                              fontSize: 14.sp,
-                                              color: Colors.grey.shade500,
-                                              decoration:
-                                                  TextDecoration.lineThrough,
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.black87,
                                             ),
                                           ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    if (formattedPricePerUnit != null)
-                                      RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            fontSize: 12.sp,
-                                            color: Colors.green,
-                                          ),
-                                          children: [
-                                            const TextSpan(
-                                              text: 'Best Price ',
+                                          SizedBox(width: 4.w),
+                                          if (mrpStatus == 1 &&
+                                              totalOriginalPrice > 0)
+                                            Text(
+                                              "₹${formatPrice(totalOriginalPrice)}",
                                               style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 14.sp,
+                                                color: Colors.grey.shade500,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                            TextSpan(
-                                              text: formattedPricePerUnit,
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
-                                  ],
+                                      if (formattedPricePerUnit != null)
+                                        _buildPricePerUnitWidget(formattedPricePerUnit, 10.sp),
+                                    ],
+                                  ),
                                 ),
                                 _buildAddToCartButton(context),
                               ],
