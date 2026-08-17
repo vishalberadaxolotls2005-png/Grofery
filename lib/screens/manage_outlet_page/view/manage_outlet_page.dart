@@ -168,7 +168,67 @@ class ManageOutletView extends StatelessWidget {
                                       ),
                                       GestureDetector(
                                         onTap: () {
-                                          context.read<ManageOutletsBloc>().add(DeleteOutlet(id: outlet.id!));
+                                          showDialog(
+                                            context: context,
+                                            builder: (ctx) {
+                                              return AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16)),
+                                                title: Row(
+                                                  children: [
+                                                    Icon(TablerIcons.trash,
+                                                        color: Colors.red[700]),
+                                                    const SizedBox(width: 12),
+                                                    const Expanded(
+                                                        child: Text(
+                                                            "Delete Outlet")),
+                                                  ],
+                                                ),
+                                                content: const Text(
+                                                    "Are you sure you want to delete this outlet?"),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(ctx).pop(),
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                          color: Colors
+                                                              .grey[700]),
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      context
+                                                          .read<
+                                                              ManageOutletsBloc>()
+                                                          .add(DeleteOutlet(
+                                                              id: outlet.id!));
+                                                      Navigator.of(ctx).pop();
+                                                    },
+                                                    child: const Text(
+                                                      "Delete",
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                         child: Row(
                                           children: [

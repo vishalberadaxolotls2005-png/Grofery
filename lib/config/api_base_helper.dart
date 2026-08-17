@@ -60,6 +60,20 @@ class ApiBaseHelper {
     }
   }
 
+  static String _extractErrorMessage(dynamic data) {
+    if (data is Map) {
+      if (data['errors'] != null && data['errors'] is Map && data['errors'].isNotEmpty) {
+        final firstErrorKey = data['errors'].keys.first;
+        final firstErrorList = data['errors'][firstErrorKey];
+        if (firstErrorList is List && firstErrorList.isNotEmpty) {
+          return firstErrorList.first.toString();
+        }
+      }
+      return (data['message'] ?? data['error'] ?? data.toString()).toString();
+    }
+    return data.toString();
+  }
+
   Future<void> downloadFile(
       {required String url,
         required dio_.CancelToken cancelToken,
@@ -128,8 +142,7 @@ class ApiBaseHelper {
       if (e.response != null) {
         final statusCode = e.response?.statusCode;
         final data = e.response?.data;
-        final message = data is Map ? (data['message'] ?? data['error'] ?? data.toString()) : data.toString();
-        throw ApiException('API Error ($statusCode): $message');
+        throw ApiException(_extractErrorMessage(data));
       } else {
         throw ApiException('Network Error: ${e.message}');
       }
@@ -168,14 +181,12 @@ class ApiBaseHelper {
           throw ApiException(
               '${e.response?.data['message']}');
         } else if(e.response?.statusCode == 422){
-          throw ApiException(
-              '${e.response?.data['errors']['email']}');
+          throw ApiException(_extractErrorMessage(e.response?.data));
         } else if(e.response?.statusCode == 500 || e.response?.statusCode == 503){
           throw ApiException(
               'Server error');
         }
-        throw ApiException(
-            '${e.response?.data['message']}');
+        throw ApiException(_extractErrorMessage(e.response?.data));
       } else {
         throw ApiException('Something Went Wrong: ${e.message}');
       }
@@ -217,8 +228,7 @@ class ApiBaseHelper {
               '${e.response?.data['message']}');
         } else if(e.response?.statusCode == 422){
           log('❌ API Error 422: ${e.response?.data}');
-          throw ApiException(
-              '${e.response?.data['success']['email']}');
+          throw ApiException(_extractErrorMessage(e.response?.data));
         } else if(e.response?.statusCode == 500){
           final errData = e.response?.data;
           log('❌ API Error 500: $errData');
@@ -231,8 +241,7 @@ class ApiBaseHelper {
           throw ApiException(
               '${e.response?.data ['message']}');
         }
-        throw ApiException(
-            '${e.response?.data ['message']}');
+        throw ApiException(_extractErrorMessage(e.response?.data));
       } else {
         throw ApiException('Something Went Wrong: ${e.message}');
       }
@@ -273,14 +282,12 @@ class ApiBaseHelper {
           throw ApiException(
               '${e.response?.data['message']}');
         } else if(e.response?.statusCode == 422){
-          throw ApiException(
-              '${e.response?.data['errors']['email']}');
+          throw ApiException(_extractErrorMessage(e.response?.data));
         } else if(e.response?.statusCode == 500 || e.response?.statusCode == 503){
           throw ApiException(
               'Server error');
         }
-        throw ApiException(
-            '${e.response?.data['message']}');
+        throw ApiException(_extractErrorMessage(e.response?.data));
       } else {
         throw ApiException('Something Went Wrong: ${e.message}');
       }

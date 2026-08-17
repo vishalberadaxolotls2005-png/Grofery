@@ -8,6 +8,7 @@ import 'package:grofery_user/utils/widgets/custom_textfield.dart';
 import '../bloc/manage_outlets_bloc.dart';
 import '../bloc/manage_outlets_event.dart';
 import '../bloc/manage_outlets_state.dart';
+import 'package:grofery_user/utils/widgets/custom_toast.dart';
 
 class AddOutletPage extends StatelessWidget {
   const AddOutletPage({super.key});
@@ -38,9 +39,10 @@ class _AddOutletViewState extends State<AddOutletView> {
 
   // Location Fields
   String? _addressLine1;
-  String? _city;
-  String? _state;
-  String? _zipcode;
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _zipcodeController = TextEditingController();
+
   String? _country;
   String? _latitude;
   String? _longitude;
@@ -53,6 +55,9 @@ class _AddOutletViewState extends State<AddOutletView> {
     _mobileController.dispose();
     _emailController.dispose();
     _gstController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _zipcodeController.dispose();
     super.dispose();
   }
 
@@ -96,9 +101,9 @@ class _AddOutletViewState extends State<AddOutletView> {
         'email': _emailController.text.trim(),
         'gst_number': _gstController.text.trim(),
         'address_line1': _addressLine1,
-        'city': _city ?? '',
-        'state': _state ?? '',
-        'zipcode': _zipcode ?? '',
+        'city': _cityController.text.trim(),
+        'state': _stateController.text.trim(),
+        'zipcode': _zipcodeController.text.trim(),
         'country': _country ?? 'India',
         'latitude': _latitude,
         'longitude': _longitude,
@@ -117,17 +122,13 @@ class _AddOutletViewState extends State<AddOutletView> {
     return BlocListener<ManageOutletsBloc, ManageOutletsState>(
       listener: (context, state) {
         if (state is AddOutletSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Outlet added successfully!')),
-          );
+          ToastManager.show(context: context, message: 'Outlet added successfully!', type: ToastType.success);
           GoRouter.of(context).pop();
         } else if (state is AddOutletError) {
           setState(() {
             _isSaving = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${state.message}')),
-          );
+          ToastManager.show(context: context, message: state.message, type: ToastType.error);
         }
       },
       child: Scaffold(
@@ -185,6 +186,28 @@ class _AddOutletViewState extends State<AddOutletView> {
                 const Text("Location",
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                CustomTextFormField(
+                  controller: _cityController,
+                  labelText: "City",
+                  validator: (val) =>
+                      val == null || val.isEmpty ? "Required" : null,
+                ),
+                const SizedBox(height: 12),
+                CustomTextFormField(
+                  controller: _stateController,
+                  labelText: "State",
+                  validator: (val) =>
+                      val == null || val.isEmpty ? "Required" : null,
+                ),
+                const SizedBox(height: 12),
+                CustomTextFormField(
+                  controller: _zipcodeController,
+                  labelText: "Zipcode",
+                  keyboardType: TextInputType.number,
+                  validator: (val) =>
+                      val == null || val.isEmpty ? "Required" : null,
+                ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
