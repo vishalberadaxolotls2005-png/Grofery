@@ -17,6 +17,7 @@ class BillSummaryWidget extends StatelessWidget {
   final double itemsSavings;
   final double deliveryChargeOriginal;
   final double handlingCharge;
+  final double taxAmount;
   final double grandTotal;
   final double totalSavings;
   final double? perStoreDropOffFees;
@@ -38,6 +39,7 @@ class BillSummaryWidget extends StatelessWidget {
     required this.itemsSavings,
     required this.deliveryChargeOriginal,
     required this.handlingCharge,
+    this.taxAmount = 0.0,
     required this.grandTotal,
     required this.totalSavings,
     this.perStoreDropOffFees,
@@ -69,7 +71,6 @@ class BillSummaryWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // Items total row
             _buildItemRow(
               context: context,
@@ -118,6 +119,15 @@ class BillSummaryWidget extends StatelessWidget {
             ),
             const SizedBox(height: 4),
 
+            // GST + Tax row
+            _buildItemRow(
+              context: context,
+              icon: TablerIcons.receipt_tax,
+              label: 'Including (GST + Tax)',
+              finalPrice: '$currency${taxAmount.toStringAsFixed(2)}',
+            ),
+            const SizedBox(height: 4),
+
             // Promo Discount Row
             if (promoCode != null &&
                 promoCode!.isNotEmpty &&
@@ -128,7 +138,8 @@ class BillSummaryWidget extends StatelessWidget {
                 icon: TablerIcons.rosette_discount_filled,
                 label: l10n?.promoDiscount ?? 'Product discount',
                 finalPrice: '- $currency${promoDiscount!.toStringAsFixed(2)}',
-                finalPriceColor: const Color(0xFF0F766E), // Teal color matching FREE
+                finalPriceColor:
+                    const Color(0xFF0F766E), // Teal color matching FREE
               ),
               const SizedBox(height: 4),
             ],
@@ -139,7 +150,8 @@ class BillSummaryWidget extends StatelessWidget {
                 context: context,
                 icon: Icons.account_balance_wallet,
                 label: 'Wallet Amount Used',
-                finalPrice: '- $currency${walletAmountUsed!.toStringAsFixed(2)}',
+                finalPrice:
+                    '- $currency${walletAmountUsed!.toStringAsFixed(2)}',
                 finalPriceColor: const Color(0xFF0F766E),
               ),
               const SizedBox(height: 4),
@@ -537,7 +549,9 @@ class BillSummaryWidget extends StatelessWidget {
     bool hasDiscount = false,
     Color? finalPriceColor,
   }) {
-    final isFree = finalPrice.toUpperCase() == 'FREE' || finalPrice.toUpperCase() == AppLocalizations.of(context)?.free?.toUpperCase();
+    final isFree = finalPrice.toUpperCase() == 'FREE' ||
+        finalPrice.toUpperCase() ==
+            AppLocalizations.of(context)?.free?.toUpperCase();
     final effectivePriceColor = finalPriceColor ??
         (isFree
             ? const Color(0xFF0F766E) // Teal for FREE
@@ -563,7 +577,8 @@ class BillSummaryWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.tertiary.withOpacity(0.8),
+                    color:
+                        Theme.of(context).colorScheme.tertiary.withOpacity(0.8),
                   ),
                 ),
                 if (additionalInfo != null) ...[
@@ -586,7 +601,8 @@ class BillSummaryWidget extends StatelessWidget {
                   originalPrice,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
+                    color:
+                        Theme.of(context).colorScheme.tertiary.withOpacity(0.4),
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),

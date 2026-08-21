@@ -1759,6 +1759,8 @@ class _CartPageState extends State<CartPage> {
                       deliveryChargeOriginal: currentDeliveryChargeVal,
                       handlingCharge:
                           billSummaryData?.handlingCharges?.toDouble() ?? 0,
+                      taxAmount:
+                          billSummaryData?.taxAmount?.toDouble() ?? 0,
                       grandTotal: finalGrandTotal,
                       totalSavings: itemSavingsVal > 0 ? itemSavingsVal : 0,
                       perStoreDropOffFees:

@@ -266,7 +266,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                     orderNote: orderData.orderNote ?? '',
                                   ),
                                   SizedBox(height: 5.h),
-                                  BillSummaryWidget(
+                                  Builder(
+                                    builder: (context) {
+                                      // Calculate total tax
+                                      double totalTax = double.tryParse(orderData.taxAmount ?? '0.0') ?? 0.0;
+                                      if (totalTax == 0.0 && orderData.items != null) {
+                                        for (var item in orderData.items!) {
+                                          totalTax += double.tryParse(item.taxAmount ?? '0.0') ?? 0.0;
+                                        }
+                                      }
+                                      return BillSummaryWidget(
                                     itemsOriginalPrice: double.tryParse(
                                             orderData.totalPayable ?? '0.0') ??
                                         0.0,
@@ -286,6 +295,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                             orderData.perStoreDropOffFee ??
                                                 '0.0') ??
                                         0.0,
+                                    taxAmount: totalTax,
                                     grandTotal: double.tryParse(
                                             orderData.finalTotal ?? '0.0') ??
                                         0.0,
@@ -304,13 +314,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                     'Invoice URL is not available',
                                                 type: ToastType.error,
                                               );
+                                              }
                                             }
-                                          }
-                                        : null,
-                                    promoCode: orderData.promoCode,
-                                    promoDiscount: double.parse(
-                                        orderData.promoDiscount ?? '0.0'),
-                                  ),
+                                          : null,
+                                      promoCode: orderData.promoCode,
+                                      promoDiscount: double.parse(
+                                          orderData.promoDiscount ?? '0.0'),
+                                  );
+                                  }),
                                   SizedBox(height: 10.h),
                                   OrderDetailCard(
                                     orderId: orderData.id?.toString() ?? '',

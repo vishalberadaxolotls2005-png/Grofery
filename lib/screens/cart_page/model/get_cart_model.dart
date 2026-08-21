@@ -478,6 +478,7 @@ class PaymentSummary {
   double? walletBalance;
   double? walletAmountUsed;
   double? payableAmount;
+  double? taxAmount;
 
   PaymentSummary(
       {this.itemsTotal,
@@ -498,7 +499,8 @@ class PaymentSummary {
         this.promoError,
         this.walletBalance,
         this.walletAmountUsed,
-        this.payableAmount});
+        this.payableAmount,
+        this.taxAmount});
 
   PaymentSummary.fromJson(Map<String, dynamic> json) {
     itemsTotal = json['items_total'] != null ? double.tryParse(json['items_total'].toString()) : null;
@@ -527,6 +529,7 @@ class PaymentSummary {
     walletBalance = json['wallet_balance'] != null ? double.tryParse(json['wallet_balance'].toString()) : null;
     walletAmountUsed = json['wallet_amount_used'] != null ? double.tryParse(json['wallet_amount_used'].toString()) : 0.0;
     payableAmount = json['payable_amount'] != null ? double.tryParse(json['payable_amount'].toString()) : null;
+    taxAmount = json['tax_amount'] != null ? double.tryParse(json['tax_amount'].toString()) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -552,6 +555,7 @@ class PaymentSummary {
     data['wallet_balance'] = walletBalance;
     data['wallet_amount_used'] = walletAmountUsed;
     data['payable_amount'] = payableAmount;
+    data['tax_amount'] = taxAmount;
     return data;
   }
 }

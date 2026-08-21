@@ -328,6 +328,10 @@ class StoreCartSection extends StatelessWidget {
   }
 
   Widget _buildPriceSection(OrderItems item, BuildContext context) {
+    double price = double.tryParse(item.price?.toString() ?? '0') ?? 0;
+    double subtotal = double.tryParse(item.subtotal?.toString() ?? '0') ?? (price * (item.quantity ?? 0));
+    String displayPrice = subtotal == subtotal.toInt() ? subtotal.toInt().toString() : subtotal.toStringAsFixed(2);
+
     return SizedBox(
       width: 100,
       child: Column(
@@ -335,7 +339,7 @@ class StoreCartSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${AppConstant.currency}${((item.quantity) ?? 0) * (double.tryParse(item.price?.toString() ?? '0') ?? 0).toInt()}',
+            '${AppConstant.currency}$displayPrice',
             style: TextStyle(
               fontSize: isTablet(context) ? 18 : 12.sp,
               fontWeight: FontWeight.w600,

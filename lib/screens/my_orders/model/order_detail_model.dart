@@ -54,6 +54,7 @@ class OrderDetailData {
   String? subtotal;
   String? totalPayable;
   String? finalTotal;
+  String? taxAmount;
   String? shippingName;
   String? shippingAddress1;
   String? shippingAddress2;
@@ -105,6 +106,7 @@ class OrderDetailData {
         this.subtotal,
         this.totalPayable,
         this.finalTotal,
+        this.taxAmount,
         this.shippingName,
         this.shippingAddress1,
         this.shippingAddress2,
@@ -160,6 +162,7 @@ class OrderDetailData {
     subtotal = json['subtotal'];
     totalPayable = json['total_payable'];
     finalTotal = json['final_total'];
+    taxAmount = json['tax_amount']?.toString();
     shippingName = json['shipping_name'];
     shippingAddress1 = json['shipping_address_1'];
     shippingAddress2 = json['shipping_address_2'];
@@ -225,6 +228,7 @@ class OrderDetailData {
     data['subtotal'] = subtotal;
     data['total_payable'] = totalPayable;
     data['final_total'] = finalTotal;
+    data['tax_amount'] = taxAmount;
     data['shipping_name'] = shippingName;
     data['shipping_address_1'] = shippingAddress1;
     data['shipping_address_2'] = shippingAddress2;
@@ -474,11 +478,11 @@ class OrderItems {
     sku = json['sku'];
     
     if (json['quantity'] != null) {
-      quantity = int.tryParse(json['quantity'].toString());
+      quantity = double.tryParse(json['quantity'].toString())?.toInt();
     } else if (json['qty'] != null) {
-      quantity = int.tryParse(json['qty'].toString());
+      quantity = double.tryParse(json['qty'].toString())?.toInt();
     } else if (json['pivot'] != null && json['pivot']['quantity'] != null) {
-      quantity = int.tryParse(json['pivot']['quantity'].toString());
+      quantity = double.tryParse(json['pivot']['quantity'].toString())?.toInt();
     } else {
       quantity = 1;
     }
